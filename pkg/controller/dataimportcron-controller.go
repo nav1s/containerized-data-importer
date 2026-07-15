@@ -663,6 +663,7 @@ func (r *DataImportCronReconciler) updateContainerImageDesiredDigest(ctx context
 		cc.AddAnnotation(cron, AnnLastCronTime, time.Now().Format(time.RFC3339))
 		if cron.Annotations[AnnSourceDesiredDigest] != digest {
 			log.Info("Updating DataImportCron", "digest", digest)
+			fmt.Println("DEBUG: Updating DataImportCron, digest:", digest)
 			cc.AddAnnotation(cron, AnnSourceDesiredDigest, digest)
 		}
 		return true, r.client.Delete(ctx, pod)
@@ -683,6 +684,9 @@ func (r *DataImportCronReconciler) updateContainerImageDesiredDigest(ctx context
 	}
 
 	containerImage := strings.TrimPrefix(*cron.Spec.Template.Spec.Source.Registry.URL, "docker://")
+	fmt.Println("DEBUG: r.image:", r.image)
+	fmt.Println("DEBUG: containerImage:", containerImage)
+	fmt.Println("DEBUG: r.pullPolicy:", r.pullPolicy)
 
 	pod = &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
@@ -694,8 +698,8 @@ func (r *DataImportCronReconciler) updateContainerImageDesiredDigest(ctx context
 					Kind:               cron.Kind,
 					Name:               cron.Name,
 					UID:                cron.UID,
-					BlockOwnerDeletion: ptr.To[bool](true),
-					Controller:         ptr.To[bool](true),
+					BlockOwnerDeletion: ptr.To(true),
+					Controller:         ptr.To(true),
 				},
 			},
 		},
@@ -707,29 +711,22 @@ func (r *DataImportCronReconciler) updateContainerImageDesiredDigest(ctx context
 			Affinity:                      workloadNodePlacement.Affinity,
 			Volumes: []corev1.Volume{
 				{
-					Name: "shared-volume",
+					Name: "image-volume",
 					VolumeSource: corev1.VolumeSource{
-						EmptyDir: &corev1.EmptyDirVolumeSource{},
+						Image: &corev1.ImageVolumeSource{
+							Reference: containerImage,
+							PullPolicy: corev1.PullIfNotPresent,
+						},
 					},
-				},
-			},
-			InitContainers: []corev1.Container{
-				{
-					Name:                     "init",
-					Image:                    r.image,
-					ImagePullPolicy:          corev1.PullPolicy(r.pullPolicy),
-					Command:                  []string{"sh", "-c", "cp /usr/bin/cdi-containerimage-server /shared/server"},
-					VolumeMounts:             []corev1.VolumeMount{{Name: "shared-volume", MountPath: "/shared"}},
-					TerminationMessagePolicy: corev1.TerminationMessageFallbackToLogsOnError,
 				},
 			},
 			Containers: []corev1.Container{
 				{
 					Name:                     "image-container",
-					Image:                    containerImage,
-					ImagePullPolicy:          corev1.PullAlways,
-					Command:                  []string{"/shared/server", "-h"},
-					VolumeMounts:             []corev1.VolumeMount{{Name: "shared-volume", MountPath: "/shared"}},
+					Image:                    r.image,
+					ImagePullPolicy:          corev1.PullPolicy(r.pullPolicy),
+					Command:                  []string{"sleep", "0.1"},
+					VolumeMounts:             []corev1.VolumeMount{{Name: "image-volume", MountPath: "/image"}},
 					TerminationMessagePolicy: corev1.TerminationMessageFallbackToLogsOnError,
 				},
 			},
@@ -1388,7 +1385,8 @@ func addDataImportCronControllerWatches(mgr manager.Manager, c controller.Contro
 		return reqs
 	}
 
-	if err := c.Watch(source.Kind(mgr.GetCache(), &cdiv1.DataVolume{},
+	if err := c.Watch(source.Kind(
+		mgr.GetCache(), &cdiv1.DataVolume{},
 		handler.TypedEnqueueRequestsFromMapFunc[*cdiv1.DataVolume](mapSourceObjectToCron),
 		predicate.TypedFuncs[*cdiv1.DataVolume]{
 			CreateFunc: func(event.TypedCreateEvent[*cdiv1.DataVolume]) bool { return false },
@@ -1399,7 +1397,8 @@ func addDataImportCronControllerWatches(mgr manager.Manager, c controller.Contro
 		return err
 	}
 
-	if err := c.Watch(source.Kind(mgr.GetCache(), &cdiv1.DataSource{},
+	if err := c.Watch(source.Kind(
+		mgr.GetCache(), &cdiv1.DataSource{},
 		handler.TypedEnqueueRequestsFromMapFunc[*cdiv1.DataSource](mapSourceObjectToCron),
 		predicate.TypedFuncs[*cdiv1.DataSource]{
 			CreateFunc: func(event.TypedCreateEvent[*cdiv1.DataSource]) bool { return false },
@@ -1410,7 +1409,8 @@ func addDataImportCronControllerWatches(mgr manager.Manager, c controller.Contro
 		return err
 	}
 
-	if err := c.Watch(source.Kind(mgr.GetCache(), &corev1.PersistentVolumeClaim{},
+	if err := c.Watch(source.Kind(
+		mgr.GetCache(), &corev1.PersistentVolumeClaim{},
 		handler.TypedEnqueueRequestsFromMapFunc[*corev1.PersistentVolumeClaim](mapSourceObjectToCron),
 		predicate.TypedFuncs[*corev1.PersistentVolumeClaim]{
 			CreateFunc: func(event.TypedCreateEvent[*corev1.PersistentVolumeClaim]) bool { return false },
@@ -1425,7 +1425,8 @@ func addDataImportCronControllerWatches(mgr manager.Manager, c controller.Contro
 		return err
 	}
 
-	if err := c.Watch(source.Kind(mgr.GetCache(), &cdiv1.StorageProfile{},
+	if err := c.Watch(source.Kind(
+		mgr.GetCache(), &cdiv1.StorageProfile{},
 		handler.TypedEnqueueRequestsFromMapFunc[*cdiv1.StorageProfile](mapStorageProfileToCron),
 		predicate.TypedFuncs[*cdiv1.StorageProfile]{
 			CreateFunc: func(event.TypedCreateEvent[*cdiv1.StorageProfile]) bool { return true },
@@ -1442,7 +1443,8 @@ func addDataImportCronControllerWatches(mgr manager.Manager, c controller.Contro
 		return []reconcile.Request{{NamespacedName: types.NamespacedName{Namespace: getCronNs(obj), Name: getCronName(obj)}}}
 	}
 
-	if err := c.Watch(source.Kind(mgr.GetCache(), &batchv1.CronJob{},
+	if err := c.Watch(source.Kind(
+		mgr.GetCache(), &batchv1.CronJob{},
 		handler.TypedEnqueueRequestsFromMapFunc[*batchv1.CronJob](mapCronJobToCron),
 		predicate.TypedFuncs[*batchv1.CronJob]{
 			CreateFunc: func(e event.TypedCreateEvent[*batchv1.CronJob]) bool {
@@ -1464,7 +1466,8 @@ func addDataImportCronControllerWatches(mgr manager.Manager, c controller.Contro
 			return err
 		}
 	}
-	if err := c.Watch(source.Kind(mgr.GetCache(), &snapshotv1.VolumeSnapshot{},
+	if err := c.Watch(source.Kind(
+		mgr.GetCache(), &snapshotv1.VolumeSnapshot{},
 		handler.TypedEnqueueRequestsFromMapFunc[*snapshotv1.VolumeSnapshot](mapSourceObjectToCron),
 		predicate.TypedFuncs[*snapshotv1.VolumeSnapshot]{
 			CreateFunc: func(event.TypedCreateEvent[*snapshotv1.VolumeSnapshot]) bool { return false },
@@ -1487,7 +1490,8 @@ func dicRelevantFieldsChanged(oldSp, newSp *cdiv1.StorageProfile) bool {
 
 // addDefaultStorageClassUpdateWatch watches for default/virt default storage class updates
 func addDefaultStorageClassUpdateWatch(mgr manager.Manager, c controller.Controller) error {
-	if err := c.Watch(source.Kind(mgr.GetCache(), &storagev1.StorageClass{},
+	if err := c.Watch(source.Kind(
+		mgr.GetCache(), &storagev1.StorageClass{},
 		handler.TypedEnqueueRequestsFromMapFunc[*storagev1.StorageClass](
 			func(ctx context.Context, obj *storagev1.StorageClass) []reconcile.Request {
 				log := c.GetLogger().WithName("DefaultStorageClassUpdateWatch")
@@ -1638,7 +1642,8 @@ func InitPollerPod(c client.Client, cron *cdiv1.DataImportCron, pod *corev1.PodT
 	}
 
 	if regSource.SecretRef != nil && *regSource.SecretRef != "" {
-		container.Env = append(container.Env,
+		container.Env = append(
+			container.Env,
 			corev1.EnvVar{
 				Name: common.ImporterAccessKeyID,
 				ValueFrom: &corev1.EnvVarSource{
