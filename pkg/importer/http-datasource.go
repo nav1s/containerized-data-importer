@@ -155,12 +155,12 @@ func (hs *HTTPDataSource) Info() (ProcessingPhase, error) {
 	// RegistryPullNode (node pull) fast-path: data is streamed via nbdkit to qemu-img for conversion
 	// without going through Transfer/TransferFile. Checksum validation is not performed in this path;
 	// when checksum is specified, it is ignored for node-pull imports. See documentation for limitations.
-	if pullMethod, _ := util.ParseEnvVar(common.ImporterPullMethod, false); pullMethod == string(cdiv1.RegistryPullNode) {
-		if err := hs.startNbdKit(); err != nil {
-			return ProcessingPhaseError, err
-		}
-		return ProcessingPhaseConvert, nil
-	}
+	//if pullMethod, _ := util.ParseEnvVar(common.ImporterPullMethod, false); pullMethod == string(cdiv1.RegistryPullNode) {
+	//	if err := hs.startNbdKit(); err != nil {
+	//		return ProcessingPhaseError, err
+	//	}
+	//	return ProcessingPhaseConvert, nil
+	//}
 	if err := hs.startNbdKit(); err == nil && !hs.brokenForQemuImg {
 		// Validate that target volume size is sufficient early.
 		return ProcessingPhaseValidatePreScratch, nil

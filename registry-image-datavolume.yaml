@@ -1,0 +1,19 @@
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: registry-image-datavolume
+  annotations:
+    cdi.kubevirt.io/storage.pod.retainAfterCompletion: "true"
+ 
+spec:
+  source:
+    registry:
+      url: "docker://kubevirt/fedora-cloud-registry-disk-demo"
+      pullMethod: node
+  storage:
+    volumeMode: Filesystem
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 5Gi

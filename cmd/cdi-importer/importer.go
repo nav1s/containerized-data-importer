@@ -187,6 +187,7 @@ func handleImport(
 
 	processor := newDataProcessor(contentType, volumeMode, ds, imageSize, filesystemOverhead, preallocation)
 	err := processor.ProcessData()
+	klog.V(1).Infoln("finish import")
 
 	scratchSpaceRequired := errors.Is(err, importer.ErrRequiresScratchSpace)
 	checksumMismatch := errors.Is(err, importer.ErrChecksumMismatch)

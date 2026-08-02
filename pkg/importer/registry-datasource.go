@@ -17,6 +17,7 @@ limitations under the License.
 package importer
 
 import (
+	"fmt"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -28,6 +29,10 @@ import (
 	"k8s.io/klog/v2"
 
 	"kubevirt.io/containerized-data-importer/pkg/common"
+
+	"kubevirt.io/containerized-data-importer/pkg/util"
+
+	cdiv1 "kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1beta1"
 )
 
 const (
@@ -84,24 +89,35 @@ func (rd *RegistryDataSource) Info() (ProcessingPhase, error) {
 
 // Transfer is called to transfer the data from the source registry to a temporary location.
 func (rd *RegistryDataSource) Transfer(path string, preallocation bool) (ProcessingPhase, error) {
+	fmt.Printf("abv: path %s \n", path)
+	fmt.Printf("abv:  preallocation %t \n", preallocation)
 	rd.imageDir = filepath.Join(path, containerDiskImageDir)
-	if err := CleanAll(rd.imageDir); err != nil {
+	fmt.Printf("abv:  imagedir %s \n", rd.imageDir)
+
+	nodePull := false
+	if pullMethod, _ := util.ParseEnvVar(common.ImporterPullMethod, false); pullMethod == string(cdiv1.RegistryPullNode) {
+		nodePull = true
+	} else if err := CleanAll(rd.imageDir); err != nil {
 		return ProcessingPhaseError, err
 	}
 
 	size, err := GetAvailableSpace(path)
 	if err != nil {
+		klog.V(1).Infof("abv: no file or directory")
 		return ProcessingPhaseError, err
 	}
+	fmt.Printf("abv:  size %d \n", size)
 	if size <= int64(0) {
 		//Path provided is invalid.
 		return ProcessingPhaseError, ErrInvalidPath
 	}
 
-	klog.V(1).Infof("Copying registry image to scratch space.")
-	rd.info, err = CopyRegistryImage(rd.endpoint, path, containerDiskImageDir, rd.accessKey, rd.secKey, rd.imageArchitecture, rd.certDir, rd.insecureTLS, preallocation)
-	if err != nil {
-		return ProcessingPhaseError, errors.Wrapf(err, "Failed to read registry image")
+	if !nodePull {
+		klog.V(1).Infof("Copying registry image to scratch space.")
+		rd.info, err = CopyRegistryImage(rd.endpoint, path, containerDiskImageDir, rd.accessKey, rd.secKey, rd.imageArchitecture, rd.certDir, rd.insecureTLS, preallocation)
+		if err != nil {
+			return ProcessingPhaseError, errors.Wrapf(err, "Failed to read registry image")
+		}
 	}
 
 	imageFile, err := getImageFileName(rd.imageDir)
@@ -127,6 +143,7 @@ func (rd *RegistryDataSource) GetURL() *url.URL {
 
 // GetTerminationMessage returns data to be serialized and used as the termination message of the importer.
 func (rd *RegistryDataSource) GetTerminationMessage() *common.TerminationMessage {
+  klog.V(1).Infof("abv rd.info %#v", rd.info)
 	if rd.info == nil {
 		return nil
 	}
