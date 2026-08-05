@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: termination-demo
+spec:
+  restartPolicy: Never
+  containers:
+  - name: termination-demo-container1
+    image: debian
+    command: ["/bin/sh"]
+    args: ["-c", "sleep 2 && echo Sleep expired 1 > /dev/termination-log"]
+  - name: termination-demo-container2
+    image: debian
+    command: ["/bin/sh"]
+    args: ["-c", "sleep 1 && echo Sleep expired 2 > /dev/termination-log"]

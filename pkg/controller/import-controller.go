@@ -88,6 +88,7 @@ type importPodEnvVar struct {
 	pullMethod                string
 	readyFile                 string
 	doneFile                  string
+	envFile                   string
 	backingFile               string
 	thumbprint                string
 	filesystemOverhead        string
@@ -167,7 +168,8 @@ func addImportControllerWatches(mgr manager.Manager, importController controller
 		return err
 	}
 	if err := importController.Watch(source.Kind(mgr.GetCache(), &corev1.Pod{}, handler.TypedEnqueueRequestForOwner[*corev1.Pod](
-		mgr.GetScheme(), mgr.GetClient().RESTMapper(), &corev1.PersistentVolumeClaim{}, handler.OnlyControllerOwner()))); err != nil {
+		mgr.GetScheme(), mgr.GetClient().RESTMapper(), &corev1.PersistentVolumeClaim{}, handler.OnlyControllerOwner(),
+	))); err != nil {
 		return err
 	}
 
@@ -175,7 +177,8 @@ func addImportControllerWatches(mgr manager.Manager, importController controller
 }
 
 func (r *ImportReconciler) shouldReconcilePVC(pvc *corev1.PersistentVolumeClaim,
-	log logr.Logger) (bool, error) {
+	log logr.Logger,
+) (bool, error) {
 	_, pvcUsesExternalPopulator := pvc.Annotations[cc.AnnExternalPopulation]
 	if pvcUsesExternalPopulator {
 		return false, nil
@@ -637,7 +640,7 @@ func (r *ImportReconciler) createImportEnvVar(pvc *corev1.PersistentVolumeClaim)
 		if podEnvVar.secretName == "" {
 			r.log.V(2).Info("no secret will be supplied to endpoint", "endPoint", podEnvVar.ep)
 		}
-		//get the CDIConfig to extract the proxy configuration to be used to import an image
+		// get the CDIConfig to extract the proxy configuration to be used to import an image
 		cdiConfig := &cdiv1.CDIConfig{}
 		err = r.client.Get(context.TODO(), types.NamespacedName{Name: common.ConfigName}, cdiConfig)
 		if err != nil {
@@ -699,7 +702,7 @@ func (r *ImportReconciler) createImportEnvVar(pvc *corev1.PersistentVolumeClaim)
 		podEnvVar.preallocation = preallocation
 	} // else use the default "false"
 
-	//get the requested image size.
+	// get the requested image size.
 	podEnvVar.imageSize, err = cc.GetRequestedImageSize(pvc)
 	if err != nil {
 		return nil, err
@@ -1080,6 +1083,8 @@ func makeImporterPodSpec(args *importerPodArgs) *corev1.Pod {
 }
 
 func makeImporterContainerSpec(args *importerPodArgs) []corev1.Container {
+	fmt.Printf("abv: args.image %s\n", args.image)
+	fmt.Printf("abv: args.pullPolicy %s\n", args.pullPolicy)
 	containers := []corev1.Container{
 		{
 			Name:            common.ImporterPodName,
@@ -1107,7 +1112,7 @@ func makeImporterContainerSpec(args *importerPodArgs) []corev1.Container {
 			Name:            "server",
 			Image:           args.importImage,
 			ImagePullPolicy: corev1.PullPolicy(args.pullPolicy),
-			Command:         []string{"/shared/server", "-p", "8100", "-image-dir", "/disk", "-ready-file", "/shared/ready", "-done-file", "/shared/done"},
+			Command:         []string{"/shared/server", "-env-file", "/shared/env"},
 			VolumeMounts: []corev1.VolumeMount{
 				{
 					MountPath: "/shared",
@@ -1116,10 +1121,15 @@ func makeImporterContainerSpec(args *importerPodArgs) []corev1.Container {
 			},
 			TerminationMessagePolicy: corev1.TerminationMessageFallbackToLogsOnError,
 		})
-		containers[0].VolumeMounts = append(containers[0].VolumeMounts, corev1.VolumeMount{
-			MountPath: "/shared",
-			Name:      "shared-volume",
-		})
+		containers[0].VolumeMounts = append(
+			containers[0].VolumeMounts, corev1.VolumeMount{
+				MountPath: "/shared",
+				Name:      "shared-volume",
+			}, corev1.VolumeMount{
+				MountPath: "/scratch",
+				Name:      "image-volume",
+			},
+		)
 	}
 	if args.scratchPvcName != nil {
 		containers[0].VolumeMounts = append(containers[0].VolumeMounts, corev1.VolumeMount{
@@ -1184,12 +1194,23 @@ func makeImporterVolumeSpec(args *importerPodArgs) []corev1.Volume {
 		},
 	}
 	if isRegistryNodeImport(args) {
-		volumes = append(volumes, corev1.Volume{
-			Name: "shared-volume",
-			VolumeSource: corev1.VolumeSource{
-				EmptyDir: &corev1.EmptyDirVolumeSource{},
+		volumes = append(
+			volumes, corev1.Volume{
+				Name: "shared-volume",
+				VolumeSource: corev1.VolumeSource{
+					EmptyDir: &corev1.EmptyDirVolumeSource{},
+				},
 			},
-		})
+			corev1.Volume{
+				Name: "image-volume",
+				VolumeSource: corev1.VolumeSource{
+					Image: &corev1.ImageVolumeSource{
+						Reference:  args.importImage,
+						PullPolicy: corev1.PullIfNotPresent,
+					},
+				},
+			},
+		)
 	}
 	if args.scratchPvcName != nil {
 		volumes = append(volumes, corev1.Volume{
@@ -1295,11 +1316,12 @@ func getOwnerUID(args *importerPodArgs) types.UID {
 }
 
 func setRegistryNodeImportEnvVars(args *importerPodArgs) {
-	args.podEnvVar.source = cc.SourceHTTP
-	args.podEnvVar.ep = "http://localhost:8100/disk.img"
+	// args.podEnvVar.source = cc.SourceHTTP
+	// args.podEnvVar.ep = "http://localhost:8100/disk.img"
 	args.podEnvVar.pullMethod = string(cdiv1.RegistryPullNode)
-	args.podEnvVar.readyFile = "/shared/ready"
-	args.podEnvVar.doneFile = "/shared/done"
+	args.podEnvVar.envFile = "/shared/env"
+	// args.podEnvVar.readyFile = "/shared/ready"
+	// args.podEnvVar.doneFile = "/shared/done"
 }
 
 func setRegistryNodeImportNodeSelector(args *importerPodArgs) {
@@ -1379,6 +1401,10 @@ func makeImportEnv(podEnvVar *importPodEnvVar, uid types.UID) []corev1.EnvVar {
 		{
 			Name:  common.ImporterReadyFile,
 			Value: podEnvVar.readyFile,
+		},
+		{
+			Name:  common.ImporterEnvFile,
+			Value: podEnvVar.envFile,
 		},
 		{
 			Name:  common.ImporterDoneFile,

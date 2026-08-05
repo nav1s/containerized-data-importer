@@ -1,0 +1,56 @@
+digraph G {
+  rankdir=TB;
+  node [shape=box];
+
+  A [label="setAnnotationsFromPodWithPrefix"];
+  B [label="pod nil OR\nno ContainerStatuses?" shape=diamond];
+  Z [label="return"];
+  C [label="podRestarts >=\nannPodRestarts?" shape=diamond];
+  C1 [label="update AnnPodRestarts"];
+  D [label="All containers\nrunning?" shape=diamond];
+  E [label="prefix = true\nreason = PodRunning"];
+  F [label="AnnRunningCondition = false"];
+  G [label="Any container not started\n& waiting with\nImagePull error?" shape=diamond];
+  H [label="message = ImagePullFailure\nreason = ImagePullFailed"];
+  I [label="First container waiting\n& reason != CrashLoopBackOff?" shape=diamond];
+  J [label="message = Waiting.Message\nreason = Waiting.Reason"];
+  K [label="First container\nterminated?" shape=diamond];
+  L [label="termMsg != nil?" shape=diamond];
+  M [label="ScratchSpace\nrequired?" shape=diamond];
+  N [label="AnnRequiresScratch = true\nreason = ScratchSpaceRequired"];
+  O [label="set message from termMsg\nset VDDK annotations\nset preallocation"];
+  P [label="reason = Terminated.Reason"];
+  Q [label="message = Terminated.Message\nset preallocation if in message"];
+  R [label="Message contains\nImagePullFailureText?" shape=diamond];
+  S [label="reason = ImagePullFailed"];
+
+  A -> B;
+  B -> Z [label="Yes"];
+  B -> C [label="No"];
+  C -> C1 [label="Yes"];
+  C -> D [label="No"];
+  C1 -> D;
+  D -> E [label="Yes"];
+  E -> Z;
+  D -> F [label="No"];
+  F -> G;
+  G -> H [label="Yes"];
+  H -> Z;
+  G -> I [label="No"];
+  I -> J [label="Yes"];
+  J -> Z;
+  I -> K [label="No"];
+  K -> Z [label="No"];
+  K -> L [label="Yes"];
+  L -> M [label="Yes"];
+  M -> N [label="Yes"];
+  N -> Z;
+  M -> O [label="No"];
+  O -> P;
+  P -> Z;
+  L -> Q [label="No"];
+  Q -> R;
+  R -> S [label="Yes"];
+  S -> Z;
+  R -> P [label="No"];
+}

@@ -63,7 +63,6 @@ var (
 )
 
 var _ = Describe("Test PVC annotations status", func() {
-
 	It("Should return complete if annotation is set", func() {
 		testPvc := cc.CreatePvc("testPvc1", "default", map[string]string{cc.AnnPodPhase: string(corev1.PodSucceeded)}, nil)
 		Expect(cc.IsPVCComplete(testPvc)).To(BeTrue())
@@ -156,9 +155,7 @@ var _ = Describe("Test PVC annotations status", func() {
 })
 
 var _ = Describe("ImportConfig Controller reconcile loop", func() {
-	var (
-		reconciler *ImportReconciler
-	)
+	var reconciler *ImportReconciler
 	AfterEach(func() {
 		if reconciler != nil {
 			close(reconciler.recorder.(*record.FakeRecorder).Events)
@@ -502,9 +499,7 @@ var _ = Describe("ImportConfig Controller reconcile loop", func() {
 })
 
 var _ = Describe("Update PVC from POD", func() {
-	var (
-		reconciler *ImportReconciler
-	)
+	var reconciler *ImportReconciler
 	AfterEach(func() {
 		if reconciler != nil {
 			close(reconciler.recorder.(*record.FakeRecorder).Events)
@@ -552,86 +547,88 @@ var _ = Describe("Update PVC from POD", func() {
 		Expect(resPvc.GetAnnotations()[cc.AnnRunningConditionReason]).To(Equal("Reason"))
 	})
 
-	DescribeTable("Should handle termination messages", func(termMsg, conditionMessage string) {
-		pvc := cc.CreatePvc("testPvc1", "default", map[string]string{}, nil)
-		pod := cc.CreateImporterTestPod(pvc, "testPvc1", nil)
-		pod.Status = corev1.PodStatus{
-			Phase: corev1.PodSucceeded,
-			ContainerStatuses: []v1.ContainerStatus{
-				{
-					State: v1.ContainerState{
-						Terminated: &v1.ContainerStateTerminated{
-							Message: termMsg,
+	DescribeTable(
+		"Should handle termination messages", func(termMsg, conditionMessage string) {
+			pvc := cc.CreatePvc("testPvc1", "default", map[string]string{}, nil)
+			pod := cc.CreateImporterTestPod(pvc, "testPvc1", nil)
+			pod.Status = corev1.PodStatus{
+				Phase: corev1.PodSucceeded,
+				ContainerStatuses: []v1.ContainerStatus{
+					{
+						State: v1.ContainerState{
+							Terminated: &v1.ContainerStateTerminated{
+								Message: termMsg,
+							},
 						},
 					},
 				},
-			},
-		}
-		reconciler = createImportReconciler(pvc, pod)
-		err := reconciler.updatePvcFromPod(pvc, pod, reconciler.log)
-		Expect(err).ToNot(HaveOccurred())
+			}
+			reconciler = createImportReconciler(pvc, pod)
+			err := reconciler.updatePvcFromPod(pvc, pod, reconciler.log)
+			Expect(err).ToNot(HaveOccurred())
 
-		resPvc := &corev1.PersistentVolumeClaim{}
-		err = reconciler.client.Get(context.TODO(), types.NamespacedName{Name: "testPvc1", Namespace: "default"}, resPvc)
-		Expect(err).ToNot(HaveOccurred())
+			resPvc := &corev1.PersistentVolumeClaim{}
+			err = reconciler.client.Get(context.TODO(), types.NamespacedName{Name: "testPvc1", Namespace: "default"}, resPvc)
+			Expect(err).ToNot(HaveOccurred())
 
-		Expect(resPvc.GetAnnotations()).To(HaveKeyWithValue(cc.AnnPodPhase, string(corev1.PodSucceeded)))
-		Expect(resPvc.GetAnnotations()).To(HaveKeyWithValue(cc.AnnRunningCondition, "false"))
-		Expect(resPvc.GetAnnotations()).To(HaveKeyWithValue(cc.AnnRunningConditionMessage, conditionMessage))
-	},
+			Expect(resPvc.GetAnnotations()).To(HaveKeyWithValue(cc.AnnPodPhase, string(corev1.PodSucceeded)))
+			Expect(resPvc.GetAnnotations()).To(HaveKeyWithValue(cc.AnnRunningCondition, "false"))
+			Expect(resPvc.GetAnnotations()).To(HaveKeyWithValue(cc.AnnRunningConditionMessage, conditionMessage))
+		},
 		Entry("Message which can be unmarshalled", `{"preAllocationApplied": true, "message": "Import Complete"}`, "Import Complete"),
 		Entry("Message which cannot be unmarshalled", "somemessage", "somemessage"),
 	)
 
-	DescribeTable("Update the PVC labels from termination message if pod is succeeded", func(phase v1.PodPhase, updated bool) {
-		const testKeyExisting = "test"
-		const testValueExisting = "existing"
+	DescribeTable(
+		"Update the PVC labels from termination message if pod is succeeded", func(phase v1.PodPhase, updated bool) {
+			const testKeyExisting = "test"
+			const testValueExisting = "existing"
 
-		termMsg := common.TerminationMessage{
-			Labels: map[string]string{
-				"instancetype.kubevirt.io/default-instancetype": "u1.small",
-				"instancetype.kubevirt.io/default-preference":   "fedora",
-				testKeyExisting: "somethingelse",
-			},
-		}
-		termMsgBytes, err := json.Marshal(termMsg)
-		Expect(err).ToNot(HaveOccurred())
+			termMsg := common.TerminationMessage{
+				Labels: map[string]string{
+					"instancetype.kubevirt.io/default-instancetype": "u1.small",
+					"instancetype.kubevirt.io/default-preference":   "fedora",
+					testKeyExisting: "somethingelse",
+				},
+			}
+			termMsgBytes, err := json.Marshal(termMsg)
+			Expect(err).ToNot(HaveOccurred())
 
-		// The existing key should not be overwritten
-		pvc := cc.CreatePvc("testPvc1", "default", map[string]string{}, map[string]string{testKeyExisting: testValueExisting})
-		pod := cc.CreateImporterTestPod(pvc, "testPvc1", nil)
-		pod.Status = corev1.PodStatus{
-			Phase: phase,
-			ContainerStatuses: []v1.ContainerStatus{
-				{
-					State: v1.ContainerState{
-						Terminated: &v1.ContainerStateTerminated{
-							Message: string(termMsgBytes),
+			// The existing key should not be overwritten
+			pvc := cc.CreatePvc("testPvc1", "default", map[string]string{}, map[string]string{testKeyExisting: testValueExisting})
+			pod := cc.CreateImporterTestPod(pvc, "testPvc1", nil)
+			pod.Status = corev1.PodStatus{
+				Phase: phase,
+				ContainerStatuses: []v1.ContainerStatus{
+					{
+						State: v1.ContainerState{
+							Terminated: &v1.ContainerStateTerminated{
+								Message: string(termMsgBytes),
+							},
 						},
 					},
 				},
-			},
-		}
-		reconciler = createImportReconciler(pvc, pod)
-		err = reconciler.updatePvcFromPod(pvc, pod, reconciler.log)
-		Expect(err).ToNot(HaveOccurred())
-
-		resPvc := &corev1.PersistentVolumeClaim{}
-		err = reconciler.client.Get(context.TODO(), types.NamespacedName{Name: "testPvc1", Namespace: "default"}, resPvc)
-		Expect(err).ToNot(HaveOccurred())
-
-		for k, v := range termMsg.Labels {
-			if k == testKeyExisting {
-				Expect(resPvc.GetLabels()).To(HaveKeyWithValue(testKeyExisting, testValueExisting))
-				continue
 			}
-			if updated {
-				Expect(resPvc.GetLabels()).To(HaveKeyWithValue(k, v))
-			} else {
-				Expect(resPvc.GetLabels()).ToNot(HaveKey(k))
+			reconciler = createImportReconciler(pvc, pod)
+			err = reconciler.updatePvcFromPod(pvc, pod, reconciler.log)
+			Expect(err).ToNot(HaveOccurred())
+
+			resPvc := &corev1.PersistentVolumeClaim{}
+			err = reconciler.client.Get(context.TODO(), types.NamespacedName{Name: "testPvc1", Namespace: "default"}, resPvc)
+			Expect(err).ToNot(HaveOccurred())
+
+			for k, v := range termMsg.Labels {
+				if k == testKeyExisting {
+					Expect(resPvc.GetLabels()).To(HaveKeyWithValue(testKeyExisting, testValueExisting))
+					continue
+				}
+				if updated {
+					Expect(resPvc.GetLabels()).To(HaveKeyWithValue(k, v))
+				} else {
+					Expect(resPvc.GetLabels()).ToNot(HaveKey(k))
+				}
 			}
-		}
-	},
+		},
 		Entry("should", v1.PodSucceeded, true),
 		Entry("should not", v1.PodFailed, false),
 	)
@@ -711,7 +708,6 @@ var _ = Describe("Update PVC from POD", func() {
 		Expect(resPvc.GetAnnotations()[cc.AnnBoundCondition]).To(Equal("false"))
 		Expect(resPvc.GetAnnotations()[cc.AnnBoundConditionMessage]).To(Equal("Creating scratch space"))
 		Expect(resPvc.GetAnnotations()[cc.AnnBoundConditionReason]).To(Equal(creatingScratch))
-
 	})
 
 	// TODO: Update me to stay in progress if we were in progress already, its a pod failure and it will get restarted.
@@ -1015,158 +1011,163 @@ var _ = Describe("Update PVC from POD", func() {
 })
 
 var _ = Describe("Create Importer Pod", func() {
-	var scratchPvcName = "scratchPvc"
+	scratchPvcName := "scratchPvc"
 
-	DescribeTable("should", func(pvc *corev1.PersistentVolumeClaim, scratchPvcName *string) {
-		reconciler := createImportReconciler(pvc)
-		podEnvVar := &importPodEnvVar{
-			ep:                 "",
-			httpProxy:          "",
-			httpsProxy:         "",
-			secretName:         "",
-			source:             "",
-			contentType:        "",
-			imageSize:          "1G",
-			certConfigMap:      "",
-			diskID:             "",
-			filesystemOverhead: "0.06",
-			insecureTLS:        false,
-		}
-		podArgs := &importerPodArgs{
-			image:              testImage,
-			verbose:            "5",
-			pullPolicy:         testPullPolicy,
-			podEnvVar:          podEnvVar,
-			pvc:                pvc,
-			scratchPvcName:     scratchPvcName,
-			priorityClassName:  pvc.Annotations[cc.AnnPriorityClassName],
-			serviceAccountName: pvc.Annotations[cc.AnnPodServiceAccount],
-		}
-		pod, err := createImporterPod(context.TODO(), reconciler.log, reconciler.client, podArgs, map[string]string{})
-		Expect(err).ToNot(HaveOccurred())
-		By("Verifying PVC owns pod")
-		Expect(pod.GetOwnerReferences()).To(HaveLen(1))
-		Expect(pod.GetOwnerReferences()[0].UID).To(Equal(pvc.GetUID()))
-		By("Verifying volume mode is correct")
-		if cc.GetVolumeMode(pvc) == corev1.PersistentVolumeBlock {
-			Expect(pod.Spec.Containers[0].VolumeDevices[0].Name).To(Equal(cc.DataVolName))
-			Expect(pod.Spec.Containers[0].VolumeDevices[0].DevicePath).To(Equal(common.WriteBlockPath))
-			if scratchPvcName != nil {
-				By("Verifying scratch space is set if available")
-				Expect(pod.Spec.Containers[0].VolumeMounts).To(HaveLen(1))
-				Expect(pod.Spec.Containers[0].VolumeMounts[0].Name).To(Equal(cc.ScratchVolName))
-				Expect(pod.Spec.Containers[0].VolumeMounts[0].MountPath).To(Equal(common.ScratchDataDir))
+	DescribeTable(
+		"should", func(pvc *corev1.PersistentVolumeClaim, scratchPvcName *string) {
+			reconciler := createImportReconciler(pvc)
+			podEnvVar := &importPodEnvVar{
+				ep:                 "",
+				httpProxy:          "",
+				httpsProxy:         "",
+				secretName:         "",
+				source:             "",
+				contentType:        "",
+				imageSize:          "1G",
+				certConfigMap:      "",
+				diskID:             "",
+				filesystemOverhead: "0.06",
+				insecureTLS:        false,
 			}
-		} else {
-			Expect(pod.Spec.Containers[0].VolumeMounts[0].Name).To(Equal(cc.DataVolName))
-			Expect(pod.Spec.Containers[0].VolumeMounts[0].MountPath).To(Equal(common.ImporterDataDir))
-			if scratchPvcName != nil {
-				By("Verifying scratch space is set if available")
-				Expect(pod.Spec.Containers[0].VolumeMounts).To(HaveLen(2))
-				Expect(pod.Spec.Containers[0].VolumeMounts[1].Name).To(Equal(cc.ScratchVolName))
-				Expect(pod.Spec.Containers[0].VolumeMounts[1].MountPath).To(Equal(common.ScratchDataDir))
+			podArgs := &importerPodArgs{
+				image:              testImage,
+				verbose:            "5",
+				pullPolicy:         testPullPolicy,
+				podEnvVar:          podEnvVar,
+				pvc:                pvc,
+				scratchPvcName:     scratchPvcName,
+				priorityClassName:  pvc.Annotations[cc.AnnPriorityClassName],
+				serviceAccountName: pvc.Annotations[cc.AnnPodServiceAccount],
 			}
-		}
-		By("Verifying container spec is correct")
-		Expect(pod.Spec.Containers[0].Image).To(Equal(testImage))
-		Expect(pod.Spec.Containers[0].ImagePullPolicy).To(BeEquivalentTo(testPullPolicy))
-		Expect(pod.Spec.Containers[0].Args[0]).To(Equal("-v=5"))
-		Expect(pod.Spec.Containers[0].TerminationMessagePolicy).To(Equal(corev1.TerminationMessageFallbackToLogsOnError))
-		Expect(pod.Spec.PriorityClassName).To(Equal(pvc.Annotations[cc.AnnPriorityClassName]))
-		Expect(pod.Spec.ServiceAccountName).To(Equal(pvc.Annotations[cc.AnnPodServiceAccount]))
-	},
+			pod, err := createImporterPod(context.TODO(), reconciler.log, reconciler.client, podArgs, map[string]string{})
+			Expect(err).ToNot(HaveOccurred())
+			By("Verifying PVC owns pod")
+			Expect(pod.GetOwnerReferences()).To(HaveLen(1))
+			Expect(pod.GetOwnerReferences()[0].UID).To(Equal(pvc.GetUID()))
+			By("Verifying volume mode is correct")
+			if cc.GetVolumeMode(pvc) == corev1.PersistentVolumeBlock {
+				Expect(pod.Spec.Containers[0].VolumeDevices[0].Name).To(Equal(cc.DataVolName))
+				Expect(pod.Spec.Containers[0].VolumeDevices[0].DevicePath).To(Equal(common.WriteBlockPath))
+				if scratchPvcName != nil {
+					By("Verifying scratch space is set if available")
+					Expect(pod.Spec.Containers[0].VolumeMounts).To(HaveLen(1))
+					Expect(pod.Spec.Containers[0].VolumeMounts[0].Name).To(Equal(cc.ScratchVolName))
+					Expect(pod.Spec.Containers[0].VolumeMounts[0].MountPath).To(Equal(common.ScratchDataDir))
+				}
+			} else {
+				Expect(pod.Spec.Containers[0].VolumeMounts[0].Name).To(Equal(cc.DataVolName))
+				Expect(pod.Spec.Containers[0].VolumeMounts[0].MountPath).To(Equal(common.ImporterDataDir))
+				if scratchPvcName != nil {
+					By("Verifying scratch space is set if available")
+					Expect(pod.Spec.Containers[0].VolumeMounts).To(HaveLen(2))
+					Expect(pod.Spec.Containers[0].VolumeMounts[1].Name).To(Equal(cc.ScratchVolName))
+					Expect(pod.Spec.Containers[0].VolumeMounts[1].MountPath).To(Equal(common.ScratchDataDir))
+				}
+			}
+			By("Verifying container spec is correct")
+			Expect(pod.Spec.Containers[0].Image).To(Equal(testImage))
+			Expect(pod.Spec.Containers[0].ImagePullPolicy).To(BeEquivalentTo(testPullPolicy))
+			Expect(pod.Spec.Containers[0].Args[0]).To(Equal("-v=5"))
+			Expect(pod.Spec.Containers[0].TerminationMessagePolicy).To(Equal(corev1.TerminationMessageFallbackToLogsOnError))
+			Expect(pod.Spec.PriorityClassName).To(Equal(pvc.Annotations[cc.AnnPriorityClassName]))
+			Expect(pod.Spec.ServiceAccountName).To(Equal(pvc.Annotations[cc.AnnPodServiceAccount]))
+		},
 		Entry("should create pod with file system volume mode", cc.CreatePvc("testPvc1", "default", map[string]string{cc.AnnEndpoint: testEndPoint, cc.AnnPodPhase: string(corev1.PodPending), cc.AnnImportPod: "podName", cc.AnnPriorityClassName: "p0", cc.AnnPodServiceAccount: "my-sa"}, nil), nil),
 		Entry("should create pod with block volume mode", createBlockPvc("testBlockPvc1", "default", map[string]string{cc.AnnEndpoint: testEndPoint, cc.AnnPodPhase: string(corev1.PodPending), cc.AnnImportPod: "podName", cc.AnnPriorityClassName: "p0", cc.AnnPodServiceAccount: "my-sa"}, nil), nil),
 		Entry("should create pod with file system volume mode and scratchspace", cc.CreatePvc("testPvc1", "default", map[string]string{cc.AnnEndpoint: testEndPoint, cc.AnnPodPhase: string(corev1.PodPending), cc.AnnImportPod: "podName", cc.AnnPriorityClassName: "p0", cc.AnnPodServiceAccount: "my-sa"}, nil), &scratchPvcName),
 		Entry("should create pod with block volume mode and scratchspace", createBlockPvc("testBlockPvc1", "default", map[string]string{cc.AnnEndpoint: testEndPoint, cc.AnnPodPhase: string(corev1.PodPending), cc.AnnImportPod: "podName", cc.AnnPriorityClassName: "p0", cc.AnnPodServiceAccount: "my-sa"}, nil), &scratchPvcName),
 	)
 
-	DescribeTable("should copy labels from target PVC when creating pod", func(isPopulator bool) {
-		targetPvc := cc.CreatePvc("targetPvc", "default",
-			map[string]string{
-				cc.AnnEndpoint:  testEndPoint,
-				cc.AnnImportPod: "podName",
-			},
-			map[string]string{
-				"custom-label": "value",
-			},
-		)
-
-		objects := []runtime.Object{targetPvc}
-		podArgs := &importerPodArgs{
-			image:      testImage,
-			verbose:    "5",
-			pullPolicy: testPullPolicy,
-			podEnvVar:  &importPodEnvVar{},
-			pvc:        targetPvc,
-		}
-
-		if isPopulator {
-			primePvc := cc.CreatePvc("primePvc", "default",
+	DescribeTable(
+		"should copy labels from target PVC when creating pod", func(isPopulator bool) {
+			targetPvc := cc.CreatePvc(
+				"targetPvc", "default",
 				map[string]string{
-					cc.AnnEndpoint:      testEndPoint,
-					cc.AnnImportPod:     "podName",
-					cc.AnnPopulatorKind: cdiv1.VolumeImportSourceRef,
+					cc.AnnEndpoint:  testEndPoint,
+					cc.AnnImportPod: "podName",
 				},
 				map[string]string{
-					"prime-label": "prime-value",
+					"custom-label": "value",
 				},
 			)
-			primePvc.OwnerReferences = []metav1.OwnerReference{
-				*metav1.NewControllerRef(targetPvc, schema.GroupVersionKind{
-					Group:   "",
-					Version: "v1",
-					Kind:    "PersistentVolumeClaim",
-				}),
+
+			objects := []runtime.Object{targetPvc}
+			podArgs := &importerPodArgs{
+				image:      testImage,
+				verbose:    "5",
+				pullPolicy: testPullPolicy,
+				podEnvVar:  &importPodEnvVar{},
+				pvc:        targetPvc,
 			}
-			objects = append(objects, primePvc)
-			podArgs.pvc = primePvc
-		}
 
-		reconciler := createImportReconciler(objects...)
+			if isPopulator {
+				primePvc := cc.CreatePvc(
+					"primePvc", "default",
+					map[string]string{
+						cc.AnnEndpoint:      testEndPoint,
+						cc.AnnImportPod:     "podName",
+						cc.AnnPopulatorKind: cdiv1.VolumeImportSourceRef,
+					},
+					map[string]string{
+						"prime-label": "prime-value",
+					},
+				)
+				primePvc.OwnerReferences = []metav1.OwnerReference{
+					*metav1.NewControllerRef(targetPvc, schema.GroupVersionKind{
+						Group:   "",
+						Version: "v1",
+						Kind:    "PersistentVolumeClaim",
+					}),
+				}
+				objects = append(objects, primePvc)
+				podArgs.pvc = primePvc
+			}
 
-		pod, err := createImporterPod(context.TODO(), reconciler.log, reconciler.client, podArgs, map[string]string{})
-		Expect(err).ToNot(HaveOccurred())
+			reconciler := createImportReconciler(objects...)
 
-		By("Verifying pod has labels from target PVC")
-		Expect(pod.Labels).To(HaveKeyWithValue("custom-label", "value"))
-		if isPopulator {
-			By("Verifying pod does not have labels from prime PVC")
-			Expect(pod.Labels).ToNot(HaveKey("prime-label"))
-		}
-	},
+			pod, err := createImporterPod(context.TODO(), reconciler.log, reconciler.client, podArgs, map[string]string{})
+			Expect(err).ToNot(HaveOccurred())
+
+			By("Verifying pod has labels from target PVC")
+			Expect(pod.Labels).To(HaveKeyWithValue("custom-label", "value"))
+			if isPopulator {
+				By("Verifying pod does not have labels from prime PVC")
+				Expect(pod.Labels).ToNot(HaveKey("prime-label"))
+			}
+		},
 		Entry("using populator", true),
 		Entry("using non-populator", false),
 	)
 
-	DescribeTable("should append current checkpoint name to importer pod", func(pvcName, checkpointID string) {
-		pvc := cc.CreatePvc(pvcName, "default", map[string]string{cc.AnnCurrentCheckpoint: checkpointID, cc.AnnEndpoint: testEndPoint}, nil)
-		pvc.Status.Phase = v1.ClaimBound
+	DescribeTable(
+		"should append current checkpoint name to importer pod", func(pvcName, checkpointID string) {
+			pvc := cc.CreatePvc(pvcName, "default", map[string]string{cc.AnnCurrentCheckpoint: checkpointID, cc.AnnEndpoint: testEndPoint}, nil)
+			pvc.Status.Phase = v1.ClaimBound
 
-		suffix := fmt.Sprintf("%s-checkpoint-%s", pvcName, checkpointID)
-		expectedName := fmt.Sprintf("importer-%s", suffix)
-		if len(expectedName) > kvalidation.DNS1123SubdomainMaxLength {
-			expectedName = naming.GetResourceName("importer", suffix)
-		}
+			suffix := fmt.Sprintf("%s-checkpoint-%s", pvcName, checkpointID)
+			expectedName := fmt.Sprintf("importer-%s", suffix)
+			if len(expectedName) > kvalidation.DNS1123SubdomainMaxLength {
+				expectedName = naming.GetResourceName("importer", suffix)
+			}
 
-		reconciler := createImportReconciler(pvc)
-		_, err := reconciler.Reconcile(context.TODO(), reconcile.Request{NamespacedName: types.NamespacedName{Name: pvcName, Namespace: "default"}})
-		Expect(err).ToNot(HaveOccurred())
+			reconciler := createImportReconciler(pvc)
+			_, err := reconciler.Reconcile(context.TODO(), reconcile.Request{NamespacedName: types.NamespacedName{Name: pvcName, Namespace: "default"}})
+			Expect(err).ToNot(HaveOccurred())
 
-		// First reconcile sets cc.AnnImportPod
-		resPvc := &corev1.PersistentVolumeClaim{}
-		err = reconciler.client.Get(context.TODO(), types.NamespacedName{Name: pvcName, Namespace: "default"}, resPvc)
-		Expect(err).ToNot(HaveOccurred())
-		Expect(resPvc.Annotations[cc.AnnImportPod]).To(Equal(expectedName))
+			// First reconcile sets cc.AnnImportPod
+			resPvc := &corev1.PersistentVolumeClaim{}
+			err = reconciler.client.Get(context.TODO(), types.NamespacedName{Name: pvcName, Namespace: "default"}, resPvc)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(resPvc.Annotations[cc.AnnImportPod]).To(Equal(expectedName))
 
-		// Second reconcile creates pod
-		_, err = reconciler.Reconcile(context.TODO(), reconcile.Request{NamespacedName: types.NamespacedName{Name: pvcName, Namespace: "default"}})
-		Expect(err).ToNot(HaveOccurred())
+			// Second reconcile creates pod
+			_, err = reconciler.Reconcile(context.TODO(), reconcile.Request{NamespacedName: types.NamespacedName{Name: pvcName, Namespace: "default"}})
+			Expect(err).ToNot(HaveOccurred())
 
-		resPod := &corev1.Pod{}
-		err = reconciler.client.Get(context.TODO(), types.NamespacedName{Name: expectedName, Namespace: "default"}, resPod)
-		Expect(err).ToNot(HaveOccurred())
-	},
+			resPod := &corev1.Pod{}
+			err = reconciler.client.Get(context.TODO(), types.NamespacedName{Name: expectedName, Namespace: "default"}, resPod)
+			Expect(err).ToNot(HaveOccurred())
+		},
 		Entry("with short PVC and checkpoint names", "testPvc1", "snap1"),
 		Entry("with long checkpoint name", "testPvc1", strings.Repeat("repeating-checkpoint-id-", 10)),
 		Entry("with long PVC name", strings.Repeat("test-pvc-", 20), "snap1"),
@@ -1246,6 +1247,7 @@ var _ = Describe("Import test env", func() {
 			uuid:                      "",
 			readyFile:                 "",
 			doneFile:                  "",
+			envFile:                   "",
 			backingFile:               "",
 			thumbprint:                "",
 			filesystemOverhead:        "0.06",
@@ -1327,22 +1329,23 @@ var _ = Describe("getInsecureTLS", func() {
 	hostWithPort := host + ":5000"
 	endpointWithPort := "docker://" + hostWithPort
 
-	DescribeTable("should", func(endpoint string, insecureHost string, isInsecure bool) {
-		pvc := cc.CreatePvc("testPVC", "default", map[string]string{cc.AnnEndpoint: endpoint}, nil)
-		reconciler := createImportReconciler(pvc)
+	DescribeTable(
+		"should", func(endpoint string, insecureHost string, isInsecure bool) {
+			pvc := cc.CreatePvc("testPVC", "default", map[string]string{cc.AnnEndpoint: endpoint}, nil)
+			reconciler := createImportReconciler(pvc)
 
-		cdiConfig := &cdiv1.CDIConfig{}
-		err := reconciler.client.Get(context.TODO(), types.NamespacedName{Name: common.ConfigName}, cdiConfig)
-		Expect(err).ToNot(HaveOccurred())
+			cdiConfig := &cdiv1.CDIConfig{}
+			err := reconciler.client.Get(context.TODO(), types.NamespacedName{Name: common.ConfigName}, cdiConfig)
+			Expect(err).ToNot(HaveOccurred())
 
-		if insecureHost != "" {
-			cdiConfig.Spec.InsecureRegistries = []string{insecureHost}
-		}
+			if insecureHost != "" {
+				cdiConfig.Spec.InsecureRegistries = []string{insecureHost}
+			}
 
-		result, err := reconciler.isInsecureTLS(pvc, cdiConfig)
-		Expect(err).ToNot(HaveOccurred())
-		Expect(result).To(Equal(isInsecure))
-	},
+			result, err := reconciler.isInsecureTLS(pvc, cdiConfig)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).To(Equal(isInsecure))
+		},
 		Entry("return true on endpoint with no port, and host defined", endpointNoPort, host, true),
 		Entry("return true on endpoint with port, and host with port", endpointWithPort, hostWithPort, true),
 		Entry("return false on endpoint with no port, and host with port", endpointNoPort, hostWithPort, false),
@@ -1353,24 +1356,25 @@ var _ = Describe("getInsecureTLS", func() {
 })
 
 var _ = Describe("isInsecureTLS", func() {
-	DescribeTable("should", func(source, insecureSkipVerify string, expected bool) {
-		annotations := map[string]string{
-			cc.AnnSource: source,
-		}
-		if insecureSkipVerify != "" {
-			annotations[cc.AnnInsecureSkipVerify] = insecureSkipVerify
-		}
-		pvc := cc.CreatePvc("testPVC", "default", annotations, nil)
-		reconciler := createImportReconciler(pvc)
+	DescribeTable(
+		"should", func(source, insecureSkipVerify string, expected bool) {
+			annotations := map[string]string{
+				cc.AnnSource: source,
+			}
+			if insecureSkipVerify != "" {
+				annotations[cc.AnnInsecureSkipVerify] = insecureSkipVerify
+			}
+			pvc := cc.CreatePvc("testPVC", "default", annotations, nil)
+			reconciler := createImportReconciler(pvc)
 
-		cdiConfig := &cdiv1.CDIConfig{}
-		err := reconciler.client.Get(context.TODO(), types.NamespacedName{Name: common.ConfigName}, cdiConfig)
-		Expect(err).ToNot(HaveOccurred())
+			cdiConfig := &cdiv1.CDIConfig{}
+			err := reconciler.client.Get(context.TODO(), types.NamespacedName{Name: common.ConfigName}, cdiConfig)
+			Expect(err).ToNot(HaveOccurred())
 
-		result, err := reconciler.isInsecureTLS(pvc, cdiConfig)
-		Expect(err).ToNot(HaveOccurred())
-		Expect(result).To(Equal(expected))
-	},
+			result, err := reconciler.isInsecureTLS(pvc, cdiConfig)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(result).To(Equal(expected))
+		},
 		Entry("return true when AnnInsecureSkipVerify is set to true for http source", cc.SourceHTTP, "true", true),
 		Entry("return true when AnnInsecureSkipVerify is set to true for imageio source", cc.SourceImageio, "true", true),
 		Entry("return false when AnnInsecureSkipVerify is set to false for http source", cc.SourceHTTP, "false", false),
@@ -1386,10 +1390,11 @@ var _ = Describe("GetContentType", func() {
 	pvcKubevirtAnno := cc.CreatePvc("testPVCKubevirtAnno", "default", map[string]string{cc.AnnContentType: string(cdiv1.DataVolumeKubeVirt)}, nil)
 	pvcInvalidValue := cc.CreatePvc("testPVCInvalidValue", "default", map[string]string{cc.AnnContentType: "iaminvalid"}, nil)
 
-	DescribeTable("should", func(pvc *corev1.PersistentVolumeClaim, expectedResult cdiv1.DataVolumeContentType) {
-		result := cc.GetPVCContentType(pvc)
-		Expect(result).To(Equal(expectedResult))
-	},
+	DescribeTable(
+		"should", func(pvc *corev1.PersistentVolumeClaim, expectedResult cdiv1.DataVolumeContentType) {
+			result := cc.GetPVCContentType(pvc)
+			Expect(result).To(Equal(expectedResult))
+		},
 		Entry("return kubevirt contenttype if no annotation provided", pvcNoAnno, cdiv1.DataVolumeKubeVirt),
 		Entry("return archive contenttype if archive annotation present", pvcArchiveAnno, cdiv1.DataVolumeArchive),
 		Entry("return kubevirt contenttype if kubevirt annotation present", pvcKubevirtAnno, cdiv1.DataVolumeKubeVirt),
@@ -1406,10 +1411,11 @@ var _ = Describe("getSource", func() {
 	pvcImageIOAnno := cc.CreatePvc("testPVCImageIOAnno", "default", map[string]string{cc.AnnSource: cc.SourceImageio}, nil)
 	pvcVDDKAnno := cc.CreatePvc("testPVCVDDKAnno", "default", map[string]string{cc.AnnSource: cc.SourceVDDK}, nil)
 
-	DescribeTable("should", func(pvc *corev1.PersistentVolumeClaim, expectedResult string) {
-		result := cc.GetSource(pvc)
-		Expect(result).To(BeEquivalentTo(expectedResult))
-	},
+	DescribeTable(
+		"should", func(pvc *corev1.PersistentVolumeClaim, expectedResult string) {
+			result := cc.GetSource(pvc)
+			Expect(result).To(BeEquivalentTo(expectedResult))
+		},
 		Entry("return none if none annotation provided", pvcNoneAnno, cc.SourceNone),
 		Entry("return http if no annotation provided", pvcNoAnno, cc.SourceHTTP),
 		Entry("return glance if glance annotation provided", pvcGlanceAnno, cc.SourceGlance),
@@ -1425,15 +1431,16 @@ var _ = Describe("GetEndpoint", func() {
 	pvcWithAnno := cc.CreatePvc("testPVCWithAnno", "default", map[string]string{cc.AnnEndpoint: "http://test"}, nil)
 	pvcNoValue := cc.CreatePvc("testPVCNoValue", "default", map[string]string{cc.AnnEndpoint: ""}, nil)
 
-	DescribeTable("should", func(pvc *corev1.PersistentVolumeClaim, expectedResult string, expectErr bool) {
-		result, err := cc.GetEndpoint(pvc)
-		Expect(result).To(BeEquivalentTo(expectedResult))
-		if expectErr {
-			Expect(err).To(HaveOccurred())
-		} else {
-			Expect(err).ToNot(HaveOccurred())
-		}
-	},
+	DescribeTable(
+		"should", func(pvc *corev1.PersistentVolumeClaim, expectedResult string, expectErr bool) {
+			result, err := cc.GetEndpoint(pvc)
+			Expect(result).To(BeEquivalentTo(expectedResult))
+			if expectErr {
+				Expect(err).To(HaveOccurred())
+			} else {
+				Expect(err).ToNot(HaveOccurred())
+			}
+		},
 		Entry("return blank and error if no annotation provided", pvcNoAnno, "", true),
 		Entry("return value and no error if valid annotation provided", pvcWithAnno, "http://test", false),
 		Entry("return blank and error if blank annotation provided", pvcNoValue, "", true),
@@ -1522,6 +1529,10 @@ func createImportTestEnv(podEnvVar *importPodEnvVar, uid string) []corev1.EnvVar
 		{
 			Name:  common.ImporterReadyFile,
 			Value: podEnvVar.readyFile,
+		},
+		{
+			Name:  common.ImporterEnvFile,
+			Value: podEnvVar.envFile,
 		},
 		{
 			Name:  common.ImporterDoneFile,

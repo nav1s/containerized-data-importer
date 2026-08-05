@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: image-volume
+spec:
+  containers:
+  - name: shell
+    command: ["sleep", "infinity"]
+    image: fedora
+    volumeMounts:
+    - name: volume
+      mountPath: /volume
+  volumes:
+  - name: volume
+    image:
+      reference: registry:5000/label-demo
+      pullPolicy: IfNotPresent

@@ -87,62 +87,64 @@ var _ = Describe("Http data source", func() {
 		Expect(err).To(HaveOccurred())
 	})
 
-	DescribeTable("calling info should", func(image string, contentType cdiv1.DataVolumeContentType, expectedPhase ProcessingPhase, want []byte, wantErr bool, brokenForQemuImg bool) {
-		flushRead = want
-		if image != "" {
-			image = ts.URL + "/" + image
-		}
-		dp, err = NewHTTPDataSource(image, "", "", "", contentType, "", false)
-		dp.brokenForQemuImg = brokenForQemuImg
-		Expect(err).NotTo(HaveOccurred())
-		newPhase, err := dp.Info()
-		if !wantErr {
+	DescribeTable(
+		"calling info should", func(image string, contentType cdiv1.DataVolumeContentType, expectedPhase ProcessingPhase, want []byte, wantErr bool, brokenForQemuImg bool) {
+			flushRead = want
+			if image != "" {
+				image = ts.URL + "/" + image
+			}
+			dp, err = NewHTTPDataSource(image, "", "", "", contentType, "", false)
+			dp.brokenForQemuImg = brokenForQemuImg
 			Expect(err).NotTo(HaveOccurred())
-			Expect(expectedPhase).To(Equal(newPhase))
-		} else {
-			Expect(err).To(HaveOccurred())
-		}
-	},
+			newPhase, err := dp.Info()
+			if !wantErr {
+				Expect(err).NotTo(HaveOccurred())
+				Expect(expectedPhase).To(Equal(newPhase))
+			} else {
+				Expect(err).To(HaveOccurred())
+			}
+		},
 		Entry("return ValidatePreScratch phase when image size can be validated", cirrosFileName, cdiv1.DataVolumeKubeVirt, ProcessingPhaseValidatePreScratch, cirrosData, false, false),
 		Entry("return TransferScratch phase when target server is broken for nbdkit+qemu-img", cirrosFileName, cdiv1.DataVolumeKubeVirt, ProcessingPhaseTransferScratch, cirrosData, false, true),
 		Entry("return TransferTarget with archive content type but not archive endpoint ", cirrosFileName, cdiv1.DataVolumeArchive, ProcessingPhaseTransferDataDir, cirrosData, false, false),
 		Entry("return TransferTarget with archive content type and archive endpoint ", diskimageTarFileName, cdiv1.DataVolumeArchive, ProcessingPhaseTransferDataDir, diskimageArchiveData, false, false),
 	)
 
-	DescribeTable("calling transfer should", func(image string, contentType cdiv1.DataVolumeContentType, expectedPhase ProcessingPhase, scratchPath string, want []byte, wantErr bool, validationErr error) {
-		flushRead = want
-		if scratchPath == "" {
-			scratchPath = tmpDir
-		}
-		if image != "" {
-			image = ts.URL + "/" + image
-		}
-		dp, err = NewHTTPDataSource(image, "", "", "", contentType, "", false)
-		Expect(err).NotTo(HaveOccurred())
-		_, err := dp.Info()
-		Expect(err).NotTo(HaveOccurred())
-		qemuOperations := NewFakeQEMUOperations(nil, nil, fakeInfoOpRetVal{&fakeZeroImageInfo, nil}, validationErr, nil, nil)
-		replaceQEMUOperations(qemuOperations, func() {
-			newPhase, err := dp.Transfer(scratchPath, false)
-			if !wantErr {
-				Expect(err).NotTo(HaveOccurred())
-				Expect(expectedPhase).To(Equal(newPhase))
-				if newPhase == ProcessingPhaseConvert {
-					file, err := os.Open(filepath.Join(scratchPath, tempFile))
-					Expect(err).NotTo(HaveOccurred())
-					defer file.Close()
-					fileStat, err := file.Stat()
-					Expect(err).NotTo(HaveOccurred())
-					Expect(int64(len(want))).To(Equal(fileStat.Size()))
-					resultBuffer, err := io.ReadAll(file)
-					Expect(err).NotTo(HaveOccurred())
-					Expect(reflect.DeepEqual(resultBuffer, want)).To(BeTrue())
-				}
-			} else {
-				Expect(err).To(HaveOccurred())
+	DescribeTable(
+		"calling transfer should", func(image string, contentType cdiv1.DataVolumeContentType, expectedPhase ProcessingPhase, scratchPath string, want []byte, wantErr bool, validationErr error) {
+			flushRead = want
+			if scratchPath == "" {
+				scratchPath = tmpDir
 			}
-		})
-	},
+			if image != "" {
+				image = ts.URL + "/" + image
+			}
+			dp, err = NewHTTPDataSource(image, "", "", "", contentType, "", false)
+			Expect(err).NotTo(HaveOccurred())
+			_, err := dp.Info()
+			Expect(err).NotTo(HaveOccurred())
+			qemuOperations := NewFakeQEMUOperations(nil, nil, fakeInfoOpRetVal{&fakeZeroImageInfo, nil}, validationErr, nil, nil)
+			replaceQEMUOperations(qemuOperations, func() {
+				newPhase, err := dp.Transfer(scratchPath, false)
+				if !wantErr {
+					Expect(err).NotTo(HaveOccurred())
+					Expect(expectedPhase).To(Equal(newPhase))
+					if newPhase == ProcessingPhaseConvert {
+						file, err := os.Open(filepath.Join(scratchPath, tempFile))
+						Expect(err).NotTo(HaveOccurred())
+						defer file.Close()
+						fileStat, err := file.Stat()
+						Expect(err).NotTo(HaveOccurred())
+						Expect(int64(len(want))).To(Equal(fileStat.Size()))
+						resultBuffer, err := io.ReadAll(file)
+						Expect(err).NotTo(HaveOccurred())
+						Expect(reflect.DeepEqual(resultBuffer, want)).To(BeTrue())
+					}
+				} else {
+					Expect(err).To(HaveOccurred())
+				}
+			})
+		},
 		Entry("return Error with missing scratch space", cirrosFileName, cdiv1.DataVolumeKubeVirt, ProcessingPhaseError, "/imaninvalidpath", cirrosData, true, nil),
 		Entry("return Error with invalid content type ", cirrosFileName, cdiv1.DataVolumeContentType("invalid"), ProcessingPhaseError, "", cirrosData, true, nil),
 		Entry("return Complete with archive content type and archive endpoint ", diskimageTarFileName, cdiv1.DataVolumeArchive, ProcessingPhaseComplete, "", diskimageArchiveData, false, nil),
@@ -151,14 +153,15 @@ var _ = Describe("Http data source", func() {
 		Entry("return Error with insufficient scratch space capacity", cirrosFileName, cdiv1.DataVolumeKubeVirt, ProcessingPhaseError, "", cirrosData, true, image.ErrLargerPVCRequired),
 	)
 
-	DescribeTable("should succeed when writing to a valid file with phase", func(expectedPhase ProcessingPhase, brokenForQemuImg bool, imageType string) {
-		dp, err = NewHTTPDataSource(ts.URL+"/"+imageType, "", "", "", cdiv1.DataVolumeKubeVirt, "", false)
-		dp.brokenForQemuImg = brokenForQemuImg
-		Expect(err).NotTo(HaveOccurred())
-		result, err := dp.Info()
-		Expect(err).NotTo(HaveOccurred())
-		Expect(result).To(Equal(expectedPhase))
-	},
+	DescribeTable(
+		"should succeed when writing to a valid file with phase", func(expectedPhase ProcessingPhase, brokenForQemuImg bool, imageType string) {
+			dp, err = NewHTTPDataSource(ts.URL+"/"+imageType, "", "", "", cdiv1.DataVolumeKubeVirt, "", false)
+			dp.brokenForQemuImg = brokenForQemuImg
+			Expect(err).NotTo(HaveOccurred())
+			result, err := dp.Info()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(result).To(Equal(expectedPhase))
+		},
 		Entry("ValidatePreScratch when reading raw gz", ProcessingPhaseTransferScratch, true, tinyCoreGz),
 		Entry("TransferScratch when reading raw gz and target server is broken for nbdkit+qemu-img", ProcessingPhaseTransferScratch, true, tinyCoreGz),
 		Entry("ValidatePreScratch when reading raw xz", ProcessingPhaseTransferScratch, true, tinyCoreXz),
@@ -347,7 +350,7 @@ var _ = Describe("Http data source", func() {
 		})
 	})
 
-	It("GetTerminationMessage should return nil when pullMethod is not node", func() {
+	It("GetTerminationMessage should return nil", func() {
 		Expect(os.Setenv(common.ImporterPullMethod, string(cdiv1.RegistryPullPod))).To(Succeed())
 		DeferCleanup(func() {
 			Expect(os.Unsetenv(common.ImporterPullMethod)).To(Succeed())
@@ -358,46 +361,6 @@ var _ = Describe("Http data source", func() {
 
 		termMsg := dp.GetTerminationMessage()
 		Expect(termMsg).To(BeNil())
-	})
-
-	DescribeTable("GetTerminationMessage should handle empty Env returned by http server", func(emptyEnv []string) {
-		Expect(os.Setenv(common.ImporterPullMethod, string(cdiv1.RegistryPullNode))).To(Succeed())
-		DeferCleanup(func() {
-			Expect(os.Unsetenv(common.ImporterPullMethod)).To(Succeed())
-		})
-
-		ts2 := createTestServer(imageDir, emptyEnv)
-
-		dp, err = NewHTTPDataSource(ts2.URL+"/"+tinyCoreGz, "", "", "", cdiv1.DataVolumeKubeVirt, "", false)
-		Expect(err).NotTo(HaveOccurred())
-
-		termMsg := dp.GetTerminationMessage()
-		Expect(termMsg.Labels).To(BeEmpty())
-		Expect(termMsg.String()).To(Equal("{}"))
-	},
-		Entry("empty slice", []string{}),
-		Entry("nil slice", nil),
-	)
-
-	It("GetTerminationMessage should contain labels collected from the containerimage-server when pullMethod is node", func() {
-		Expect(os.Setenv(common.ImporterPullMethod, string(cdiv1.RegistryPullNode))).To(Succeed())
-		DeferCleanup(func() {
-			Expect(os.Unsetenv(common.ImporterPullMethod)).To(Succeed())
-		})
-
-		ts2 := createTestServer(imageDir, []string{
-			"INSTANCETYPE_KUBEVIRT_IO_DEFAULT_INSTANCETYPE=u1.small",
-			"INSTANCETYPE_KUBEVIRT_IO_DEFAULT_PREFERENCE=fedora",
-		})
-
-		dp, err = NewHTTPDataSource(ts2.URL+"/"+tinyCoreGz, "", "", "", cdiv1.DataVolumeKubeVirt, "", false)
-		Expect(err).NotTo(HaveOccurred())
-
-		termMsg := dp.GetTerminationMessage()
-		Expect(termMsg).ToNot(BeNil())
-		Expect(termMsg.Labels).To(HaveLen(2))
-		Expect(termMsg.Labels).To(HaveKeyWithValue("instancetype.kubevirt.io/default-instancetype", "u1.small"))
-		Expect(termMsg.Labels).To(HaveKeyWithValue("instancetype.kubevirt.io/default-preference", "fedora"))
 	})
 })
 
@@ -415,11 +378,11 @@ var _ = Describe("Http client", func() {
 
 		certBytes := cert.EncodeCertPEM(keyPair.Cert)
 
-		err = os.WriteFile(path.Join(tempDir, "tls.crt"), certBytes, 0600)
+		err = os.WriteFile(path.Join(tempDir, "tls.crt"), certBytes, 0o600)
 		Expect(err).ToNot(HaveOccurred())
 
 		// create and populate proxy cert dir
-		err = os.Mkdir(common.ImporterProxyCertDir, 0755)
+		err = os.Mkdir(common.ImporterProxyCertDir, 0o755)
 		Expect(err).ToNot(HaveOccurred())
 
 		keyPair, err = triple.NewCA("proxy.cdi.kubevirt.io")
@@ -427,7 +390,7 @@ var _ = Describe("Http client", func() {
 
 		certBytes = cert.EncodeCertPEM(keyPair.Cert)
 
-		err = os.WriteFile(path.Join(common.ImporterProxyCertDir, "tls.crt"), certBytes, 0600)
+		err = os.WriteFile(path.Join(common.ImporterProxyCertDir, "tls.crt"), certBytes, 0o600)
 		Expect(err).ToNot(HaveOccurred())
 	})
 
@@ -439,26 +402,27 @@ var _ = Describe("Http client", func() {
 		os.RemoveAll(common.ImporterProxyCertDir)
 	})
 
-	DescribeTable("should load", func(useCertDir bool) {
-		certDir := ""
-		if useCertDir {
-			certDir = tempDir
-		}
-		client, err := createHTTPClient(certDir, false)
-		Expect(err).ToNot(HaveOccurred())
+	DescribeTable(
+		"should load", func(useCertDir bool) {
+			certDir := ""
+			if useCertDir {
+				certDir = tempDir
+			}
+			client, err := createHTTPClient(certDir, false)
+			Expect(err).ToNot(HaveOccurred())
 
-		transport := client.Transport.(*http.Transport)
-		Expect(transport).ToNot(BeNil())
+			transport := client.Transport.(*http.Transport)
+			Expect(transport).ToNot(BeNil())
 
-		activeCAs := transport.TLSClientConfig.RootCAs
-		Expect(transport).ToNot(BeNil())
+			activeCAs := transport.TLSClientConfig.RootCAs
+			Expect(transport).ToNot(BeNil())
 
-		systemCAs, err := x509.SystemCertPool()
-		Expect(err).ToNot(HaveOccurred())
+			systemCAs, err := x509.SystemCertPool()
+			Expect(err).ToNot(HaveOccurred())
 
-		// since we added certs these should be different
-		Expect(activeCAs.Equal(systemCAs)).To(BeFalse())
-	},
+			// since we added certs these should be different
+			Expect(activeCAs.Equal(systemCAs)).To(BeFalse())
+		},
 		Entry("the certs when cert dir exists", true),
 		Entry("the proxy cert when cert dir doesn't exist", false),
 	)

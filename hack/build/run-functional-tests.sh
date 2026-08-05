@@ -106,7 +106,8 @@ fi
         ginkgo_args+=(--skip="${CDI_E2E_SKIP}")
     fi
 
-    if [[ "$CDI_E2E_FOCUS" =~ /.+\.go/ ]]; then
+ 
+    if [[ "$CDI_E2E_FOCUS" =~ \.go ]]; then
         ginkgo_args+=(--focus-file="${CDI_E2E_FOCUS}")
     elif [[ -n "$CDI_E2E_FOCUS" ]]; then
         ginkgo_args+=(--focus="${CDI_E2E_FOCUS}")

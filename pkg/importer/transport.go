@@ -128,7 +128,8 @@ func processLayer(ctx context.Context,
 	pathPrefix string,
 	cache types.BlobInfoCache,
 	stopAtFirst,
-	preallocation bool) (bool, error) {
+	preallocation bool,
+) (bool, error) {
 	var reader io.ReadCloser
 	reader, _, err := src.GetBlob(ctx, layer, cache)
 	if err != nil {
@@ -250,6 +251,7 @@ func copyRegistryImage(url, destDir, pathPrefix, accessKey, secKey, imageArchite
 	}
 
 	info, err := imgCloser.Inspect(ctx)
+	klog.Infof("abv: '%v'", info)
 	if err != nil {
 		return nil, err
 	}

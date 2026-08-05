@@ -137,6 +137,8 @@ const (
 	ImporterReadyFile = "IMPORTER_READY_FILE"
 	// ImporterDoneFile provides a constant to capture our env variable "IMPORTER_DONE_FILE"
 	ImporterDoneFile = "IMPORTER_DONE_FILE"
+	// ImporterEnvFile provides a constant to capture our env variable "IMPORTER_ENV_FILE"
+	ImporterEnvFile = "IMPORTER_ENV_FILE"
 	// ImporterBackingFile provides a constant to capture our env variable "IMPORTER_BACKING_FILE"
 	ImporterBackingFile = "IMPORTER_BACKING_FILE"
 	// ImporterThumbprint provides a constant to capture our env variable "IMPORTER_THUMBPRINT"
