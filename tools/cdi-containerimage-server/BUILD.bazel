@@ -6,10 +6,6 @@ go_library(
     srcs = ["main.go"],
     importpath = "kubevirt.io/containerized-data-importer/tools/cdi-containerimage-server",
     visibility = ["//visibility:private"],
-    deps = [
-        "//pkg/common:go_default_library",
-        "//vendor/github.com/pkg/errors:go_default_library",
-    ],
 )
 
 go_binary(

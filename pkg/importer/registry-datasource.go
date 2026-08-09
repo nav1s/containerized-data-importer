@@ -27,7 +27,9 @@ import (
 
 	"k8s.io/klog/v2"
 
+	cdiv1 "kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1beta1"
 	"kubevirt.io/containerized-data-importer/pkg/common"
+	"kubevirt.io/containerized-data-importer/pkg/util"
 )
 
 const (
@@ -85,7 +87,10 @@ func (rd *RegistryDataSource) Info() (ProcessingPhase, error) {
 // Transfer is called to transfer the data from the source registry to a temporary location.
 func (rd *RegistryDataSource) Transfer(path string, preallocation bool) (ProcessingPhase, error) {
 	rd.imageDir = filepath.Join(path, containerDiskImageDir)
-	if err := CleanAll(rd.imageDir); err != nil {
+	nodePull := false
+	if pullMethod, _ := util.ParseEnvVar(common.ImporterPullMethod, false); pullMethod == string(cdiv1.RegistryPullNode) {
+		nodePull = true
+	} else if err := CleanAll(rd.imageDir); err != nil {
 		return ProcessingPhaseError, err
 	}
 
@@ -98,10 +103,12 @@ func (rd *RegistryDataSource) Transfer(path string, preallocation bool) (Process
 		return ProcessingPhaseError, ErrInvalidPath
 	}
 
-	klog.V(1).Infof("Copying registry image to scratch space.")
-	rd.info, err = CopyRegistryImage(rd.endpoint, path, containerDiskImageDir, rd.accessKey, rd.secKey, rd.imageArchitecture, rd.certDir, rd.insecureTLS, preallocation)
-	if err != nil {
-		return ProcessingPhaseError, errors.Wrapf(err, "Failed to read registry image")
+	if !nodePull {
+	  klog.V(1).Infof("Copying registry image to scratch space.")
+	  rd.info, err = CopyRegistryImage(rd.endpoint, path, containerDiskImageDir, rd.accessKey, rd.secKey, rd.imageArchitecture, rd.certDir, rd.insecureTLS, preallocation)
+	  if err != nil {
+	  	return ProcessingPhaseError, errors.Wrapf(err, "Failed to read registry image")
+	  }
 	}
 
 	imageFile, err := getImageFileName(rd.imageDir)
@@ -127,6 +134,27 @@ func (rd *RegistryDataSource) GetURL() *url.URL {
 
 // GetTerminationMessage returns data to be serialized and used as the termination message of the importer.
 func (rd *RegistryDataSource) GetTerminationMessage() *common.TerminationMessage {
+	if pullMethod, _ := util.ParseEnvVar(common.ImporterPullMethod, false); pullMethod == string(cdiv1.RegistryPullNode) {
+		envFile, _ := util.ParseEnvVar(common.ImporterEnvFile, false)
+		if envFile == "" {
+			klog.Errorf("Env file environment variable does not exist")
+			return nil
+		}
+		klog.V(1).Infof("Extracting environment variables from the shared file")
+		data, err := os.ReadFile(envFile)
+		if err != nil {
+			klog.Errorf("Env file does not exist")
+			return nil
+		}
+
+		envString := strings.Split(strings.TrimSpace(string(data)), "\n")
+		klog.V(1).Infof("Found environment variables: %s", envString)
+
+		return &common.TerminationMessage{
+			Labels: envsToLabels(envString),
+		}
+	}
+
 	if rd.info == nil {
 		return nil
 	}

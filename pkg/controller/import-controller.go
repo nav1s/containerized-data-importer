@@ -88,6 +88,7 @@ type importPodEnvVar struct {
 	pullMethod                string
 	readyFile                 string
 	doneFile                  string
+	envFile                   string
 	backingFile               string
 	thumbprint                string
 	filesystemOverhead        string
@@ -1107,7 +1108,7 @@ func makeImporterContainerSpec(args *importerPodArgs) []corev1.Container {
 			Name:            "server",
 			Image:           args.importImage,
 			ImagePullPolicy: corev1.PullPolicy(args.pullPolicy),
-			Command:         []string{"/shared/server", "-p", "8100", "-image-dir", "/disk", "-ready-file", "/shared/ready", "-done-file", "/shared/done"},
+			Command:         []string{"/shared/server", "-env-file", "/shared/env"},
 			VolumeMounts: []corev1.VolumeMount{
 				{
 					MountPath: "/shared",
@@ -1119,7 +1120,11 @@ func makeImporterContainerSpec(args *importerPodArgs) []corev1.Container {
 		containers[0].VolumeMounts = append(containers[0].VolumeMounts, corev1.VolumeMount{
 			MountPath: "/shared",
 			Name:      "shared-volume",
-		})
+		}, corev1.VolumeMount{
+			MountPath: "/scratch",
+			Name: "image-volume",
+		},
+		)
 	}
 	if args.scratchPvcName != nil {
 		containers[0].VolumeMounts = append(containers[0].VolumeMounts, corev1.VolumeMount{
@@ -1189,7 +1194,17 @@ func makeImporterVolumeSpec(args *importerPodArgs) []corev1.Volume {
 			VolumeSource: corev1.VolumeSource{
 				EmptyDir: &corev1.EmptyDirVolumeSource{},
 			},
-		})
+		},
+			corev1.Volume{
+				Name: "image-volume",
+				VolumeSource: corev1.VolumeSource{
+					Image: &corev1.ImageVolumeSource{
+						Reference: args.importImage,
+						PullPolicy: corev1.PullIfNotPresent,
+					},
+				},
+			},
+		)
 	}
 	if args.scratchPvcName != nil {
 		volumes = append(volumes, corev1.Volume{
@@ -1295,11 +1310,8 @@ func getOwnerUID(args *importerPodArgs) types.UID {
 }
 
 func setRegistryNodeImportEnvVars(args *importerPodArgs) {
-	args.podEnvVar.source = cc.SourceHTTP
-	args.podEnvVar.ep = "http://localhost:8100/disk.img"
 	args.podEnvVar.pullMethod = string(cdiv1.RegistryPullNode)
-	args.podEnvVar.readyFile = "/shared/ready"
-	args.podEnvVar.doneFile = "/shared/done"
+	args.podEnvVar.envFile = "/shared/env"
 }
 
 func setRegistryNodeImportNodeSelector(args *importerPodArgs) {
@@ -1383,6 +1395,10 @@ func makeImportEnv(podEnvVar *importPodEnvVar, uid types.UID) []corev1.EnvVar {
 		{
 			Name:  common.ImporterDoneFile,
 			Value: podEnvVar.doneFile,
+		},
+		{
+			Name:  common.ImporterEnvFile,
+			Value: podEnvVar.envFile,
 		},
 		{
 			Name:  common.ImporterBackingFile,
