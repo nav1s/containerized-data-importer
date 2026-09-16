@@ -37,6 +37,10 @@ const (
 	containerDiskImageDir = "disk"
 )
 
+type envLoader interface {
+	Load()
+}
+
 // RegistryDataSource is the struct containing the information needed to import from a registry data source.
 // Sequence of phases:
 // 1. Info -> Transfer
@@ -52,6 +56,7 @@ type RegistryDataSource struct {
 	pullMethod        string
 	imageRootDir      string
 	envFile           string
+	envLoader         envLoader
 	//The discovered image file in scratch space.
 	url *url.URL
 	//The discovered image info from the registry.
@@ -157,6 +162,7 @@ func (rd *RegistryDataSource) GetURL() *url.URL {
 
 // GetTerminationMessage returns data to be serialized and used as the termination message of the importer.
 func (rd *RegistryDataSource) GetTerminationMessage() *common.TerminationMessage {
+	rd.envLoader.Load()
 	if rd.pullMethod == string(cdiv1.RegistryPullNode) {
 		if rd.envFile == "" {
 			klog.Errorf("ImporterEnvFile environment variable is empty or not set")
@@ -183,6 +189,21 @@ func (rd *RegistryDataSource) GetTerminationMessage() *common.TerminationMessage
 	return &common.TerminationMessage{
 		Labels: envsToLabels(rd.info.Env),
 	}
+}
+
+type myIface interface {
+	Foo()
+}
+
+type myConcOne struct{}
+
+func (myConcOne) Foo()
+
+type myConcTwo struct{}
+
+func (myConcTwo) Foo()
+
+func abstractFactoryMy(...string) myIface {
 }
 
 // Close closes any readers or other open resources.

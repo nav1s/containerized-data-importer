@@ -1,0 +1,15 @@
+./hack/build/bazel-docker.sh ./hack/build/build-ginkgo.sh
+CDI_CRI: podman, CDI_CONTAINER_BUILDCMD: buildah
+Trying to pull quay.io/kubevirt/kubevirt-cdi-bazel-builder:2608131447-4e35e2f54...
+Getting image source signatures
+Copying blob sha256:2cd642b288e33667152b1f1d41e11ebbac68e41ebe071c6e0f05b64d32067d4c
+Copying blob sha256:28fce384917bd9a4de80ca381670d7a53ae5efca9b0997104a95bbf91ecf626f
+Copying config sha256:fec8045819fac8d3d445d3ec946d0b318d9d7adc57b79696cbdbdca5f104e613
+Writing manifest to image destination
+fec8045819fac8d3d445d3ec946d0b318d9d7adc57b79696cbdbdca5f104e613
+Making sure output directory exists...
+go version go1.25.12 linux/amd64
+go version go1.25.12 linux/amd64
+Starting rsyncd
+
+Rsyncing /home/avneta/Downloads/gits/containerized-data-importer to container

@@ -1,0 +1,7 @@
+./hack/build/bazel-docker.sh ./hack/build/build-ginkgo.sh
+CDI_CRI: podman, CDI_CONTAINER_BUILDCMD: buildah
+17ec7e0f1156e2c012cc11bcbeb9cbff5269ecf06a14ae76ad8b7e787a079176
+Making sure output directory exists...
+Starting rsyncd
+
+Rsyncing /home/aviv/Documents/gits/containerized-data-importer to container
