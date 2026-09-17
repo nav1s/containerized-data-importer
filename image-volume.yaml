@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: image-volume
+spec:
+  containers:
+  - name: shell
+    command: ["sleep", "infinity"]
+    image: fedora
+    volumeMounts:
+    - name: volume
+      mountPath: /volume
+  volumes:
+  - name: volume
+    image:
+      # reference: test-img:latest
+      reference: quay.io/kubevirt/fedora-cloud-registry-disk-demo@sha256:6f5afce978111b0968d1d718435df7ef4f0b266715acd41620321b6ed3c28ad6
+      pullPolicy: IfNotPresent

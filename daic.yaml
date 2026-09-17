@@ -1,0 +1,24 @@
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataImportCron
+metadata:
+  name: fedora-image-cron
+  namespace: default
+spec:
+  schedule: "* * * * *" # Runs every minute
+  garbageCollect: Outdated # Deletes old PVCs when new ones are imported
+  managedDataSource: fedora # Creates a DataSource pointing to the latest ready PVC
+  retentionPolicy: Retain # Keeps the DataVolume/PVC if the cron job is deleted
+  template:
+    spec:
+      source:
+        registry:
+          imageStream: "test-img:latest"
+          # url: "docker://quay.io/containerdisks/fedora:latest"
+          pullMethod: node # Uses the node's container runtime to pull the image
+      storage:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 20Gi
+        # storageClassName: "your-storage-class" # Optional: specify if you don't want to use the default

@@ -194,12 +194,15 @@ func (r *DataImportCronReconciler) initCron(ctx context.Context, dataImportCron 
 	return nil
 }
 
-func (r *DataImportCronReconciler) getImageStream(ctx context.Context, imageStreamName, imageStreamNamespace string) (*imagev1.ImageStream, string, error) {
+func (r *DataImportCronReconciler) getImageStream(ctx context.Context, imageStreamName, imageStreamNamespace string, log logr.Logger) (*imagev1.ImageStream, string, error) {
 	if imageStreamName == "" || imageStreamNamespace == "" {
 		return nil, "", errors.Errorf("Missing ImageStream name or namespace")
 	}
 	imageStream := &imagev1.ImageStream{}
+	log.Info("abv: imageStream: ", imageStream)
 	name, tag, err := splitImageStreamName(imageStreamName)
+	log.Info("abv: imageStream name:", name)
+	log.Info("abv: imageStream tag:", tag)
 	if err != nil {
 		return nil, "", err
 	}
@@ -631,7 +634,7 @@ func (r *DataImportCronReconciler) updateImageStreamDesiredDigest(ctx context.Co
 	if regSource.ImageStream == nil {
 		return nil
 	}
-	imageStream, imageStreamTag, err := r.getImageStream(ctx, *regSource.ImageStream, dataImportCron.Namespace)
+	imageStream, imageStreamTag, err := r.getImageStream(ctx, *regSource.ImageStream, dataImportCron.Namespace, log)
 	if err != nil {
 		return err
 	}

@@ -1092,7 +1092,7 @@ var _ = Describe("Create Importer Pod", func() {
 			priorityClassName:  pvc.Annotations[cc.AnnPriorityClassName],
 			serviceAccountName: pvc.Annotations[cc.AnnPodServiceAccount],
 		}
-		pod, err := createImporterPod(context.TODO(), reconciler.log, reconciler.client, podArgs, map[string]string{})
+		pod, err := createImporterPod(reconciler.log, reconciler.client, podArgs, map[string]string{})
 		Expect(err).ToNot(HaveOccurred())
 		By("Verifying PVC owns pod")
 		Expect(pod.GetOwnerReferences()).To(HaveLen(1))
@@ -1175,7 +1175,7 @@ var _ = Describe("Create Importer Pod", func() {
 
 		reconciler := createImportReconciler(objects...)
 
-		pod, err := createImporterPod(context.TODO(), reconciler.log, reconciler.client, podArgs, map[string]string{})
+		pod, err := createImporterPod(reconciler.log, reconciler.client, podArgs, map[string]string{})
 		Expect(err).ToNot(HaveOccurred())
 
 		By("Verifying pod has labels from target PVC")
