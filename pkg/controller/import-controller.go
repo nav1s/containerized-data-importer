@@ -593,7 +593,7 @@ func (r *ImportReconciler) createImporterPod(pvc *corev1.PersistentVolumeClaim) 
 		serviceAccountName: cc.GetPodServiceAccount(pvc),
 	}
 
-	pod, err := createImporterPod(context.TODO(), r.log, r.client, podArgs, r.installerLabels)
+	pod, err := createImporterPod(context.Background(), r.log, r.client, podArgs, r.installerLabels)
 	// Check if pod has failed and, in that case, record an event with the error
 	if podErr := cc.HandleFailedPod(err, pvc.Annotations[cc.AnnImportPod], pvc, r.recorder, r.client); podErr != nil {
 		return podErr
@@ -894,14 +894,21 @@ func (r *ImportReconciler) getVddkNodeSelector(namespace, cmName string) (map[st
 }
 
 // returns the import image part of the endpoint string
-func getRegistryImportImage(pvc *corev1.PersistentVolumeClaim) (string, error) {
+func getRegistryImportImage(ctx context.Context, client client.Client, pvc *corev1.PersistentVolumeClaim) (string, error) {
 	ep, err := cc.GetEndpoint(pvc)
 	if err != nil {
 		return "", nil
 	}
+
 	if cc.IsImageStream(pvc) {
-		return ep, nil
+		_, registry, err := getImageStreamAndRegistry(ctx, client, ep, pvc.Namespace)
+
+		if err != nil {
+			return "", err
+		}
+		return registry, nil
 	}
+
 	url, err := url.Parse(ep)
 	if err != nil {
 		return "", errors.Errorf("illegal registry endpoint %s", ep)
@@ -958,7 +965,7 @@ func createImporterPod(ctx context.Context, log logr.Logger, client client.Clien
 	}
 
 	if isRegistryNodeImport(args) {
-		args.importImage, err = getRegistryImportImage(args.pvc)
+		args.importImage, err = getRegistryImportImage(ctx, client, args.pvc)
 		if err != nil {
 			return nil, err
 		}
