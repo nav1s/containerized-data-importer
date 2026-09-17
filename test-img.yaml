@@ -1,0 +1,18 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: test-img
+  namespace: openshift-virtualization-os-images
+spec:
+  lookupPolicy:
+    local: true
+  tags:
+    - name: latest
+      from:
+        kind: DockerImage
+        name: quay.io/kubevirt/fedora-cloud-registry-disk-demo
+      importPolicy:
+        importMode: Legacy
+      referencePolicy:
+        type: Local
+

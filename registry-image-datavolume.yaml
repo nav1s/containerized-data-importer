@@ -1,0 +1,21 @@
+apiVersion: cdi.kubevirt.io/v1beta1
+kind: DataVolume
+metadata:
+  name: registry-image-datavolume
+  annotations:
+    cdi.kubevirt.io/storage.pod.retainAfterCompletion: "true"
+    cdi.kubevirt.io/storage.bind.immediate.requested: "true"
+
+spec:
+  source:
+    registry:
+      imageStream: "test-img:latest"
+      # url: "docker://registry:5000/label-demo"
+      # url: "docker://myregistry/myorg/myimage:wrongtag"
+      # url: "docker://quay.io/kubevirt/fedora-cloud-registry-disk-demo"
+      pullMethod: node
+  storage:
+    volumeMode: Filesystem
+    resources:
+      requests:
+        storage: 5Gi

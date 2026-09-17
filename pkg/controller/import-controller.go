@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/go-logr/logr"
+	imagev1 "github.com/openshift/api/image/v1"
 	"github.com/pkg/errors"
 
 	corev1 "k8s.io/api/core/v1"
@@ -592,8 +593,12 @@ func (r *ImportReconciler) createImporterPod(pvc *corev1.PersistentVolumeClaim) 
 		priorityClassName:  cc.GetPriorityClass(pvc),
 		serviceAccountName: cc.GetPodServiceAccount(pvc),
 	}
+	err = r.populatePodArgs(context.TODO(), podArgs)
+	if err != nil {
+		return err
+	}
 
-	pod, err := createImporterPod(context.TODO(), r.log, r.client, podArgs, r.installerLabels)
+	pod, err := createImporterPod(r.log, r.client, podArgs, r.installerLabels)
 	// Check if pod has failed and, in that case, record an event with the error
 	if podErr := cc.HandleFailedPod(err, pvc.Annotations[cc.AnnImportPod], pvc, r.recorder, r.client); podErr != nil {
 		return podErr
@@ -893,14 +898,53 @@ func (r *ImportReconciler) getVddkNodeSelector(namespace, cmName string) (map[st
 	return nodeSelector, nil
 }
 
+func (r *ImportReconciler) getImageStream(ctx context.Context, imageStreamName, imageStreamNamespace string) (*imagev1.ImageStream, string, error) {
+	if imageStreamName == "" || imageStreamNamespace == "" {
+		return nil, "", fmt.Errorf("Missing ImageStream name or namespace")
+	}
+	imageStream := &imagev1.ImageStream{}
+	name, tag, err := splitImageStreamName(imageStreamName)
+	if err != nil {
+		return nil, "", err
+	}
+	imageStreamNamespacedName := types.NamespacedName{
+		Namespace: imageStreamNamespace,
+		Name:      name,
+	}
+	if err := r.client.Get(ctx, imageStreamNamespacedName, imageStream); err != nil {
+		return nil, "", err
+	}
+	return imageStream, tag, nil
+}
+
+func (r *ImportReconciler) resolveImageStreamEndpoint(ctx context.Context, imageStreamName, namespace string, log logr.Logger) (string, error) {
+	imageStream, imageStreamTag, err := r.getImageStream(ctx, imageStreamName, namespace)
+	if err != nil {
+		return "", err
+	}
+	if imageStreamTag == "" {
+		imageStreamTag = imagev1.DefaultImageTag
+	}
+	_, dockerRef, err := getImageStreamDigest(imageStream, imageStreamTag)
+	if err != nil {
+		return "", err
+	}
+	log.V(3).Info("resolving digest for:", imageStream, "namespace", namespace, "image name", dockerRef)
+	return dockerRef, nil
+}
+
 // returns the import image part of the endpoint string
-func getRegistryImportImage(pvc *corev1.PersistentVolumeClaim) (string, error) {
+func (r *ImportReconciler) getRegistryImportImage(ctx context.Context, pvc *corev1.PersistentVolumeClaim, log logr.Logger) (string, error) {
 	ep, err := cc.GetEndpoint(pvc)
 	if err != nil {
 		return "", nil
 	}
 	if cc.IsImageStream(pvc) {
-		return ep, nil
+		resolvedEndpoint, err := r.resolveImageStreamEndpoint(ctx, ep, pvc.Namespace, log)
+		if err != nil {
+			return "", err
+		}
+		return resolvedEndpoint, nil
 	}
 	url, err := url.Parse(ep)
 	if err != nil {
@@ -937,30 +981,27 @@ func createImportPodNameFromPvc(pvc *corev1.PersistentVolumeClaim) string {
 	return naming.GetResourceName(common.ImporterPodName, podNameWithCheckpoint(pvc))
 }
 
-// createImporterPod creates and returns a pointer to a pod which is created based on the passed-in endpoint, secret
-// name, and pvc. A nil secret means the endpoint credentials are not passed to the
-// importer pod.
-func createImporterPod(ctx context.Context, log logr.Logger, client client.Client, args *importerPodArgs, installerLabels map[string]string) (*corev1.Pod, error) {
+func (r *ImportReconciler) populatePodArgs(ctx context.Context, args *importerPodArgs) error {
 	var err error
-	args.podResourceRequirements, err = cc.GetDefaultPodResourceRequirements(client)
+	args.podResourceRequirements, err = cc.GetDefaultPodResourceRequirements(r.client)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	args.imagePullSecrets, err = cc.GetImagePullSecrets(client)
+	args.imagePullSecrets, err = cc.GetImagePullSecrets(r.client)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	args.workloadNodePlacement, err = cc.GetWorkloadNodePlacement(ctx, client)
+	args.workloadNodePlacement, err = cc.GetWorkloadNodePlacement(ctx, r.client)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if isRegistryNodeImport(args) {
-		args.importImage, err = getRegistryImportImage(args.pvc)
+		args.importImage, err = r.getRegistryImportImage(ctx, args.pvc, r.log)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		setRegistryNodeImportEnvVars(args)
 		if args.podEnvVar.registryImageArchitecture != "" {
@@ -972,6 +1013,13 @@ func createImporterPod(ctx context.Context, log logr.Logger, client client.Clien
 		setImportNodeSelectorArch(args, "amd64")
 	}
 
+	return nil
+}
+
+// createImporterPod creates and returns a pointer to a pod which is created based on the passed-in endpoint, secret
+// name, and pvc. A nil secret means the endpoint credentials are not passed to the
+// importer pod.
+func createImporterPod(log logr.Logger, client client.Client, args *importerPodArgs, installerLabels map[string]string) (*corev1.Pod, error) {
 	pod := makeImporterPodSpec(args)
 
 	util.SetRecommendedLabels(pod, installerLabels, "cdi-controller")
@@ -993,7 +1041,7 @@ func createImporterPod(ctx context.Context, log logr.Logger, client client.Clien
 	// add any labels from pvc to the importer pod
 	util.MergeLabels(srcLabels, pod.Labels)
 
-	if err = client.Create(context.TODO(), pod); err != nil {
+	if err := client.Create(context.TODO(), pod); err != nil {
 		return nil, err
 	}
 
