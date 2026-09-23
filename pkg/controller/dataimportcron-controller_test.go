@@ -2004,6 +2004,18 @@ func newImageStream(name string) *imagev1.ImageStream {
 			Namespace: metav1.NamespaceDefault,
 			UID:       types.UID(metav1.NamespaceDefault + "-" + name),
 		},
+		Spec: imagev1.ImageStreamSpec{
+			Tags: []imagev1.TagReference{
+				{
+					Name: tagWithNoItems,
+				},
+				{
+					ReferencePolicy: imagev1.TagReferencePolicy{
+						Type: imagev1.LocalTagReferencePolicy,
+					},
+				},
+			},
+		},
 		Status: imagev1.ImageStreamStatus{
 			Tags: []imagev1.NamedTagEventList{
 				{

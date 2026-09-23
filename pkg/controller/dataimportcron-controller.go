@@ -90,8 +90,10 @@ type DataImportCronReconciler struct {
 const (
 	// AnnSourceDesiredDigest is the digest of the pending updated image
 	AnnSourceDesiredDigest = cc.AnnAPIGroup + "/storage.import.sourceDesiredDigest"
-	// AnnImageStreamDockerRef is the ImageStream Docker reference
+	// AnnImageStreamDockerRef is the registry the ImageStream wants us to import from (based on the referencePolicy)
 	AnnImageStreamDockerRef = cc.AnnAPIGroup + "/storage.import.imageStreamDockerRef"
+	// AnnReferencePolicy is the referencePolicy of an ImageStreamTag
+	AnnReferencePolicy = cc.AnnAPIGroup + "/storage.import.sourceDesiredDigest"
 	// AnnNextCronTime is the next time stamp which satisfies the cron expression
 	AnnNextCronTime = cc.AnnAPIGroup + "/storage.import.nextCronTime"
 	// AnnLastCronTime is the cron last execution time stamp
@@ -213,33 +215,58 @@ func (r *DataImportCronReconciler) getImageStream(ctx context.Context, imageStre
 	return imageStream, tag, nil
 }
 
-func getImageStreamDigest(imageStream *imagev1.ImageStream, imageStreamTag string) (string, string, error) {
-	if imageStream == nil {
-		return "", "", errors.Errorf("No ImageStream")
-	}
-	tags := imageStream.Status.Tags
-	if len(tags) == 0 {
-		return "", "", errors.Errorf("ImageStream %s has no tags", imageStream.Name)
-	}
-
-	tagIdx := 0
-	if len(imageStreamTag) > 0 {
-		tagIdx = -1
-		for i, tag := range tags {
-			if tag.Tag == imageStreamTag {
-				tagIdx = i
-				break
-			}
+func getTagIndex(tagCount int, tagName string, getTagName func(i int) string) int {
+	for i := range tagCount {
+		if tagName == getTagName(i) {
+			return i
 		}
 	}
-	if tagIdx == -1 {
-		return "", "", errors.Errorf("ImageStream %s has no tag %s", imageStream.Name, imageStreamTag)
+	return -1
+}
+
+func getImageStreamDigest(imageStream *imagev1.ImageStream, imageStreamTag string) (string, string, error) {
+	if imageStream == nil {
+		return "", "", fmt.Errorf("No ImageStream")
 	}
 
-	if len(tags[tagIdx].Items) == 0 {
-		return "", "", errors.Errorf("ImageStream %s tag %s has no items", imageStream.Name, imageStreamTag)
+	statusTags := imageStream.Status.Tags
+	if len(statusTags) == 0 {
+		return "", "", fmt.Errorf("ImageStream %s has no tags in the status", imageStream.Name)
 	}
-	return tags[tagIdx].Items[0].Image, tags[tagIdx].Items[0].DockerImageReference, nil
+
+	statusTagIndex := 0
+	if imageStreamTag != "" {
+		statusTagIndex = getTagIndex(len(statusTags), imageStreamTag, func(i int) string { return statusTags[i].Tag })
+	}
+
+	if statusTagIndex == -1 {
+		return "", "", fmt.Errorf("ImageStream %s has no tag %s in the status", imageStream.Name, imageStreamTag)
+	}
+
+	if len(statusTags[statusTagIndex].Items) == 0 {
+		return "", "", fmt.Errorf("ImageStream %s tag %s has no items", imageStream.Name, imageStreamTag)
+	}
+
+	dockerImageRepositry := imageStream.Status.DockerImageRepository
+
+	// Items[0] contains the most recent image
+	desiredTag := statusTags[statusTagIndex].Items[0]
+	desiredTagName := statusTags[statusTagIndex].Tag
+	digest := desiredTag.Image
+	registry := desiredTag.DockerImageReference
+
+	specTags := imageStream.Spec.Tags
+	// since the content and size of the tags might vary between the status and spec we need to also scan the specTags and attempt to find the matching tag
+	specTagIndex := getTagIndex(len(specTags), desiredTagName, func(i int) string { return specTags[i].Name })
+
+	if specTagIndex != -1 {
+		referencePolicy := imageStream.Spec.Tags[specTagIndex].ReferencePolicy.Type
+		if referencePolicy == imagev1.LocalTagReferencePolicy && dockerImageRepositry != "" {
+			registry = fmt.Sprintf("%s@%s", dockerImageRepositry, digest)
+		}
+	}
+
+	return digest, registry, nil
 }
 
 func splitImageStreamName(imageStreamName string) (string, string, error) {
@@ -635,16 +662,26 @@ func (r *DataImportCronReconciler) updateImageStreamDesiredDigest(ctx context.Co
 	if err != nil {
 		return err
 	}
-	digest, dockerRef, err := getImageStreamDigest(imageStream, imageStreamTag)
+
+	digest, registry, err := getImageStreamDigest(imageStream, imageStreamTag)
 	if err != nil {
 		return err
 	}
+
 	cc.AddAnnotation(dataImportCron, AnnLastCronTime, time.Now().Format(time.RFC3339))
-	if digest != "" && dataImportCron.Annotations[AnnSourceDesiredDigest] != digest {
+
+	desiredDigest := dataImportCron.Annotations[AnnSourceDesiredDigest]
+	if digest != "" && digest != desiredDigest {
 		log.Info("Updating DataImportCron", "digest", digest)
 		cc.AddAnnotation(dataImportCron, AnnSourceDesiredDigest, digest)
-		cc.AddAnnotation(dataImportCron, AnnImageStreamDockerRef, dockerRef)
 	}
+
+	desiredRegistry := dataImportCron.Annotations[AnnImageStreamDockerRef]
+	if registry != "" && registry != desiredRegistry {
+		log.Info("Updating DataImportCron", "registry", registry)
+		cc.AddAnnotation(dataImportCron, AnnImageStreamDockerRef, registry)
+	}
+
 	return nil
 }
 
