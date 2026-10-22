@@ -13,7 +13,6 @@ go_library(
     importpath = "sigs.k8s.io/controller-runtime/pkg/cache",
     visibility = ["//visibility:public"],
     deps = [
-        "//vendor/golang.org/x/exp/maps:go_default_library",
         "//vendor/k8s.io/api/core/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/api/meta:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/apis/meta/v1:go_default_library",

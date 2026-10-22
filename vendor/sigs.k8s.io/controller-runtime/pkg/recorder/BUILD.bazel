@@ -6,5 +6,8 @@ go_library(
     importmap = "kubevirt.io/containerized-data-importer/vendor/sigs.k8s.io/controller-runtime/pkg/recorder",
     importpath = "sigs.k8s.io/controller-runtime/pkg/recorder",
     visibility = ["//visibility:public"],
-    deps = ["//vendor/k8s.io/client-go/tools/record:go_default_library"],
+    deps = [
+        "//vendor/k8s.io/client-go/tools/events:go_default_library",
+        "//vendor/k8s.io/client-go/tools/record:go_default_library",
+    ],
 )
