@@ -10,6 +10,7 @@ if [[ "$@" =~ "vendor" ]]; then
     rm -f vendor/github.com/grpc-ecosystem/grpc-gateway/v2/utilities/BUILD.bazel
     rm -f vendor/github.com/grpc-ecosystem/grpc-gateway/v2/internal/httprule/BUILD.bazel
     rm -f vendor/github.com/google/cel-go/parser/gen/BUILD.bazel
+    rm -f vendor/github.com/envoyproxy/protoc-gen-validate/validate/BUILD
 fi
 
 bazel run \
