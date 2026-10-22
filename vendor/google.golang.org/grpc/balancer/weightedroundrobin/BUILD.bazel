@@ -1,0 +1,31 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "balancer.go",
+        "config.go",
+        "logging.go",
+        "scheduler.go",
+    ],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/google.golang.org/grpc/balancer/weightedroundrobin",
+    importpath = "google.golang.org/grpc/balancer/weightedroundrobin",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/github.com/cncf/xds/go/xds/data/orca/v3:go_default_library",
+        "//vendor/google.golang.org/grpc/balancer:go_default_library",
+        "//vendor/google.golang.org/grpc/balancer/endpointsharding:go_default_library",
+        "//vendor/google.golang.org/grpc/balancer/pickfirst:go_default_library",
+        "//vendor/google.golang.org/grpc/balancer/weightedroundrobin/internal:go_default_library",
+        "//vendor/google.golang.org/grpc/balancer/weightedtarget:go_default_library",
+        "//vendor/google.golang.org/grpc/connectivity:go_default_library",
+        "//vendor/google.golang.org/grpc/experimental/stats:go_default_library",
+        "//vendor/google.golang.org/grpc/grpclog:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/grpclog:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/grpcsync:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/serviceconfig:go_default_library",
+        "//vendor/google.golang.org/grpc/orca:go_default_library",
+        "//vendor/google.golang.org/grpc/resolver:go_default_library",
+        "//vendor/google.golang.org/grpc/serviceconfig:go_default_library",
+    ],
+)

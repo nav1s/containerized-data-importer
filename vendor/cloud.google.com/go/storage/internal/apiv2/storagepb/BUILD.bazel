@@ -9,6 +9,7 @@ go_library(
     deps = [
         "//vendor/cloud.google.com/go/iam/apiv1/iampb:go_default_library",
         "//vendor/google.golang.org/genproto/googleapis/api/annotations:go_default_library",
+        "//vendor/google.golang.org/genproto/googleapis/rpc/status:go_default_library",
         "//vendor/google.golang.org/genproto/googleapis/type/date:go_default_library",
         "//vendor/google.golang.org/grpc:go_default_library",
         "//vendor/google.golang.org/grpc/codes:go_default_library",

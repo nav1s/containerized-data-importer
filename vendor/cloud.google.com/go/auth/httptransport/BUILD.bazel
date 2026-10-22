@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "httptransport.go",
+        "transport.go",
+    ],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/cloud.google.com/go/auth/httptransport",
+    importpath = "cloud.google.com/go/auth/httptransport",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/cloud.google.com/go/auth:go_default_library",
+        "//vendor/cloud.google.com/go/auth/credentials:go_default_library",
+        "//vendor/cloud.google.com/go/auth/internal:go_default_library",
+        "//vendor/cloud.google.com/go/auth/internal/transport:go_default_library",
+        "//vendor/cloud.google.com/go/auth/internal/transport/cert:go_default_library",
+        "//vendor/github.com/googleapis/gax-go/v2/internallog:go_default_library",
+        "//vendor/go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp:go_default_library",
+        "//vendor/golang.org/x/net/http2:go_default_library",
+    ],
+)

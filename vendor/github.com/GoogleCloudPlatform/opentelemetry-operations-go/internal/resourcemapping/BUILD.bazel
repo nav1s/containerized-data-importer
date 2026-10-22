@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["resourcemapping.go"],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping",
+    importpath = "github.com/GoogleCloudPlatform/opentelemetry-operations-go/internal/resourcemapping",
+    visibility = ["//vendor/github.com/GoogleCloudPlatform/opentelemetry-operations-go:__subpackages__"],
+    deps = [
+        "//vendor/go.opentelemetry.io/otel/semconv/v1.24.0:go_default_library",
+        "//vendor/google.golang.org/genproto/googleapis/api/monitoredres:go_default_library",
+    ],
+)

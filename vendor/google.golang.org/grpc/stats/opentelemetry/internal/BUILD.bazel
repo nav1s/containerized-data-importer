@@ -1,0 +1,10 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["pluginoption.go"],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/google.golang.org/grpc/stats/opentelemetry/internal",
+    importpath = "google.golang.org/grpc/stats/opentelemetry/internal",
+    visibility = ["//vendor/google.golang.org/grpc/stats/opentelemetry:__subpackages__"],
+    deps = ["//vendor/google.golang.org/grpc/metadata:go_default_library"],
+)

@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "cba.go",
+        "s2a.go",
+        "transport.go",
+    ],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/cloud.google.com/go/auth/internal/transport",
+    importpath = "cloud.google.com/go/auth/internal/transport",
+    visibility = ["//vendor/cloud.google.com/go/auth:__subpackages__"],
+    deps = [
+        "//vendor/cloud.google.com/go/auth/credentials:go_default_library",
+        "//vendor/cloud.google.com/go/auth/internal:go_default_library",
+        "//vendor/cloud.google.com/go/auth/internal/transport/cert:go_default_library",
+        "//vendor/cloud.google.com/go/compute/metadata:go_default_library",
+        "//vendor/github.com/google/s2a-go:go_default_library",
+        "//vendor/github.com/google/s2a-go/fallback:go_default_library",
+        "//vendor/google.golang.org/grpc/credentials:go_default_library",
+    ],
+)

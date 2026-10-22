@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "concurrent_safe.go",
+        "doc.go",
+    ],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/go.opentelemetry.io/otel/sdk/metric/internal/reservoir",
+    importpath = "go.opentelemetry.io/otel/sdk/metric/internal/reservoir",
+    visibility = ["//vendor/go.opentelemetry.io/otel/sdk/metric:__subpackages__"],
+)

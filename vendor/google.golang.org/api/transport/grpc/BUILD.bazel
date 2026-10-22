@@ -11,8 +11,11 @@ go_library(
     importpath = "google.golang.org/api/transport/grpc",
     visibility = ["//visibility:public"],
     deps = [
+        "//vendor/cloud.google.com/go/auth:go_default_library",
+        "//vendor/cloud.google.com/go/auth/credentials:go_default_library",
+        "//vendor/cloud.google.com/go/auth/grpctransport:go_default_library",
+        "//vendor/cloud.google.com/go/auth/oauth2adapt:go_default_library",
         "//vendor/cloud.google.com/go/compute/metadata:go_default_library",
-        "//vendor/go.opencensus.io/plugin/ocgrpc:go_default_library",
         "//vendor/go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc:go_default_library",
         "//vendor/golang.org/x/oauth2:go_default_library",
         "//vendor/golang.org/x/time/rate:go_default_library",

@@ -1,0 +1,19 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "extconfig.go",
+        "httpfilter.go",
+    ],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/google.golang.org/grpc/internal/xds/httpfilter",
+    importpath = "google.golang.org/grpc/internal/xds/httpfilter",
+    visibility = ["//vendor/google.golang.org/grpc:__subpackages__"],
+    deps = [
+        "//vendor/github.com/envoyproxy/go-control-plane/envoy/config/common/mutation_rules/v3:go_default_library",
+        "//vendor/github.com/envoyproxy/go-control-plane/envoy/type/matcher/v3:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/resolver:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/xds/matcher:go_default_library",
+        "//vendor/google.golang.org/protobuf/proto:go_default_library",
+    ],
+)

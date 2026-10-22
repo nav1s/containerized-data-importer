@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["any_vtproto.pb.go"],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/github.com/planetscale/vtprotobuf/types/known/anypb",
+    importpath = "github.com/planetscale/vtprotobuf/types/known/anypb",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/github.com/planetscale/vtprotobuf/protohelpers:go_default_library",
+        "//vendor/google.golang.org/protobuf/runtime/protoimpl:go_default_library",
+        "//vendor/google.golang.org/protobuf/types/known/anypb:go_default_library",
+    ],
+)

@@ -14,6 +14,9 @@ go_library(
     importpath = "google.golang.org/api/internal",
     visibility = ["//vendor/google.golang.org/api:__subpackages__"],
     deps = [
+        "//vendor/cloud.google.com/go/auth:go_default_library",
+        "//vendor/cloud.google.com/go/auth/credentials:go_default_library",
+        "//vendor/cloud.google.com/go/auth/oauth2adapt:go_default_library",
         "//vendor/cloud.google.com/go/compute/metadata:go_default_library",
         "//vendor/github.com/google/s2a-go:go_default_library",
         "//vendor/github.com/google/s2a-go/fallback:go_default_library",

@@ -1,0 +1,26 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "migrate.pb.go",
+        "migrate.pb.validate.go",
+        "security.pb.go",
+        "security.pb.validate.go",
+        "sensitive.pb.go",
+        "sensitive.pb.validate.go",
+        "status.pb.go",
+        "status.pb.validate.go",
+        "versioning.pb.go",
+        "versioning.pb.validate.go",
+    ],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/github.com/cncf/xds/go/udpa/annotations",
+    importpath = "github.com/cncf/xds/go/udpa/annotations",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/google.golang.org/protobuf/reflect/protoreflect:go_default_library",
+        "//vendor/google.golang.org/protobuf/runtime/protoimpl:go_default_library",
+        "//vendor/google.golang.org/protobuf/types/descriptorpb:go_default_library",
+        "//vendor/google.golang.org/protobuf/types/known/anypb:go_default_library",
+    ],
+)

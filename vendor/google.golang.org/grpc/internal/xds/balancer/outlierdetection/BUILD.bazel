@@ -1,0 +1,29 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "balancer.go",
+        "callcounter.go",
+        "config.go",
+        "logging.go",
+        "subconn_wrapper.go",
+    ],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/google.golang.org/grpc/internal/xds/balancer/outlierdetection",
+    importpath = "google.golang.org/grpc/internal/xds/balancer/outlierdetection",
+    visibility = ["//vendor/google.golang.org/grpc:__subpackages__"],
+    deps = [
+        "//vendor/google.golang.org/grpc/balancer:go_default_library",
+        "//vendor/google.golang.org/grpc/connectivity:go_default_library",
+        "//vendor/google.golang.org/grpc/experimental/stats:go_default_library",
+        "//vendor/google.golang.org/grpc/grpclog:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/balancer/gracefulswitch:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/buffer:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/channelz:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/grpclog:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/grpcsync:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/serviceconfig:go_default_library",
+        "//vendor/google.golang.org/grpc/resolver:go_default_library",
+        "//vendor/google.golang.org/grpc/serviceconfig:go_default_library",
+    ],
+)

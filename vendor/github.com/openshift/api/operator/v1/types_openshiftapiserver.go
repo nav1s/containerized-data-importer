@@ -25,7 +25,6 @@ type OpenShiftAPIServer struct {
 	metav1.ObjectMeta `json:"metadata"`
 
 	// spec is the specification of the desired behavior of the OpenShift API Server.
-	// +kubebuilder:validation:Required
 	// +required
 	Spec OpenShiftAPIServerSpec `json:"spec"`
 
@@ -40,6 +39,11 @@ type OpenShiftAPIServerSpec struct {
 
 type OpenShiftAPIServerStatus struct {
 	OperatorStatus `json:",inline"`
+
+	// encryptionStatus contains status reports for the KMS plugin health and its key rotation.
+	// +optional
+	// +openshift:enable:FeatureGate=KMSEncryption
+	EncryptionStatus KMSEncryptionStatus `json:"encryptionStatus,omitempty,omitzero"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -55,6 +59,6 @@ type OpenShiftAPIServerList struct {
 	// More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
 	metav1.ListMeta `json:"metadata"`
 
-	// Items contains the items
+	// items contains the items
 	Items []OpenShiftAPIServer `json:"items"`
 }

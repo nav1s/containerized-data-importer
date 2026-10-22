@@ -12,6 +12,7 @@ go_library(
         "types_nutanixprovider.go",
         "types_powervsprovider.go",
         "zz_generated.deepcopy.go",
+        "zz_generated.model_name.go",
         "zz_generated.swagger_doc_generated.go",
     ],
     importmap = "kubevirt.io/containerized-data-importer/vendor/github.com/openshift/api/machine/v1",

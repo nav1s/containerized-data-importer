@@ -3,14 +3,11 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "go_default_library",
     srcs = [
-        "deviceclass.go",
+        "devicetaintrule.go",
         "doc.go",
         "generated_expansion.go",
-        "podschedulingcontext.go",
         "resource_client.go",
-        "resourceclaim.go",
-        "resourceclaimtemplate.go",
-        "resourceslice.go",
+        "resourcepoolstatusrequest.go",
     ],
     importmap = "kubevirt.io/containerized-data-importer/vendor/k8s.io/client-go/kubernetes/typed/resource/v1alpha3",
     importpath = "k8s.io/client-go/kubernetes/typed/resource/v1alpha3",

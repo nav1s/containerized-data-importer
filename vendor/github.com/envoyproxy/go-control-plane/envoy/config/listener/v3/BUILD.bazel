@@ -1,0 +1,36 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "api_listener.pb.go",
+        "api_listener.pb.validate.go",
+        "listener.pb.go",
+        "listener.pb.validate.go",
+        "listener_components.pb.go",
+        "listener_components.pb.validate.go",
+        "quic_config.pb.go",
+        "quic_config.pb.validate.go",
+        "udp_listener_config.pb.go",
+        "udp_listener_config.pb.validate.go",
+    ],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/github.com/envoyproxy/go-control-plane/envoy/config/listener/v3",
+    importpath = "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/github.com/cncf/xds/go/udpa/annotations:go_default_library",
+        "//vendor/github.com/cncf/xds/go/xds/annotations/v3:go_default_library",
+        "//vendor/github.com/cncf/xds/go/xds/core/v3:go_default_library",
+        "//vendor/github.com/cncf/xds/go/xds/type/matcher/v3:go_default_library",
+        "//vendor/github.com/envoyproxy/go-control-plane/envoy/annotations:go_default_library",
+        "//vendor/github.com/envoyproxy/go-control-plane/envoy/config/accesslog/v3:go_default_library",
+        "//vendor/github.com/envoyproxy/go-control-plane/envoy/config/core/v3:go_default_library",
+        "//vendor/github.com/envoyproxy/go-control-plane/envoy/type/v3:go_default_library",
+        "//vendor/github.com/envoyproxy/protoc-gen-validate/validate:validate_go",
+        "//vendor/google.golang.org/protobuf/reflect/protoreflect:go_default_library",
+        "//vendor/google.golang.org/protobuf/runtime/protoimpl:go_default_library",
+        "//vendor/google.golang.org/protobuf/types/known/anypb:go_default_library",
+        "//vendor/google.golang.org/protobuf/types/known/durationpb:go_default_library",
+        "//vendor/google.golang.org/protobuf/types/known/wrapperspb:go_default_library",
+    ],
+)

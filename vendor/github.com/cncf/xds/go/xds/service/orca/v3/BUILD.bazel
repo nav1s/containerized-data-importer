@@ -1,0 +1,23 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "orca.pb.go",
+        "orca.pb.validate.go",
+        "orca_grpc.pb.go",
+    ],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/github.com/cncf/xds/go/xds/service/orca/v3",
+    importpath = "github.com/cncf/xds/go/xds/service/orca/v3",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/github.com/cncf/xds/go/xds/data/orca/v3:go_default_library",
+        "//vendor/google.golang.org/grpc:go_default_library",
+        "//vendor/google.golang.org/grpc/codes:go_default_library",
+        "//vendor/google.golang.org/grpc/status:go_default_library",
+        "//vendor/google.golang.org/protobuf/reflect/protoreflect:go_default_library",
+        "//vendor/google.golang.org/protobuf/runtime/protoimpl:go_default_library",
+        "//vendor/google.golang.org/protobuf/types/known/anypb:go_default_library",
+        "//vendor/google.golang.org/protobuf/types/known/durationpb:go_default_library",
+    ],
+)

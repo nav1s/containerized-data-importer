@@ -7,7 +7,10 @@ go_library(
     importpath = "google.golang.org/api/transport/http",
     visibility = ["//visibility:public"],
     deps = [
-        "//vendor/go.opencensus.io/plugin/ochttp:go_default_library",
+        "//vendor/cloud.google.com/go/auth:go_default_library",
+        "//vendor/cloud.google.com/go/auth/credentials:go_default_library",
+        "//vendor/cloud.google.com/go/auth/httptransport:go_default_library",
+        "//vendor/cloud.google.com/go/auth/oauth2adapt:go_default_library",
         "//vendor/go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp:go_default_library",
         "//vendor/golang.org/x/net/http2:go_default_library",
         "//vendor/golang.org/x/oauth2:go_default_library",
@@ -15,6 +18,5 @@ go_library(
         "//vendor/google.golang.org/api/internal:go_default_library",
         "//vendor/google.golang.org/api/internal/cert:go_default_library",
         "//vendor/google.golang.org/api/option:go_default_library",
-        "//vendor/google.golang.org/api/transport/http/internal/propagation:go_default_library",
     ],
 )

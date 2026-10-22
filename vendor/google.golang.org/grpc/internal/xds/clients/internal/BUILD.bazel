@@ -1,0 +1,15 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["internal.go"],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/google.golang.org/grpc/internal/xds/clients/internal",
+    importpath = "google.golang.org/grpc/internal/xds/clients/internal",
+    visibility = ["//vendor/google.golang.org/grpc/internal/xds/clients:__subpackages__"],
+    deps = [
+        "//vendor/github.com/envoyproxy/go-control-plane/envoy/config/core/v3:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/xds/clients:go_default_library",
+        "//vendor/google.golang.org/protobuf/proto:go_default_library",
+        "//vendor/google.golang.org/protobuf/types/known/structpb:go_default_library",
+    ],
+)

@@ -7,6 +7,7 @@ go_library(
         "register.go",
         "types_apirequestcount.go",
         "zz_generated.deepcopy.go",
+        "zz_generated.model_name.go",
         "zz_generated.swagger_doc_generated.go",
     ],
     importmap = "kubevirt.io/containerized-data-importer/vendor/github.com/openshift/api/apiserver/v1",

@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "compute.go",
+        "manufacturer.go",
+        "manufacturer_linux.go",
+        "manufacturer_windows.go",
+    ],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/cloud.google.com/go/auth/internal/compute",
+    importpath = "cloud.google.com/go/auth/internal/compute",
+    visibility = ["//vendor/cloud.google.com/go/auth:__subpackages__"],
+)

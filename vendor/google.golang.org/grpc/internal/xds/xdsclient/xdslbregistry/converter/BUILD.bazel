@@ -1,0 +1,30 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["converter.go"],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/google.golang.org/grpc/internal/xds/xdsclient/xdslbregistry/converter",
+    importpath = "google.golang.org/grpc/internal/xds/xdsclient/xdslbregistry/converter",
+    visibility = ["//vendor/google.golang.org/grpc:__subpackages__"],
+    deps = [
+        "//vendor/github.com/cncf/xds/go/udpa/type/v1:go_default_library",
+        "//vendor/github.com/cncf/xds/go/xds/type/v3:go_default_library",
+        "//vendor/github.com/envoyproxy/go-control-plane/envoy/extensions/load_balancing_policies/client_side_weighted_round_robin/v3:go_default_library",
+        "//vendor/github.com/envoyproxy/go-control-plane/envoy/extensions/load_balancing_policies/least_request/v3:go_default_library",
+        "//vendor/github.com/envoyproxy/go-control-plane/envoy/extensions/load_balancing_policies/pick_first/v3:go_default_library",
+        "//vendor/github.com/envoyproxy/go-control-plane/envoy/extensions/load_balancing_policies/ring_hash/v3:go_default_library",
+        "//vendor/github.com/envoyproxy/go-control-plane/envoy/extensions/load_balancing_policies/wrr_locality/v3:go_default_library",
+        "//vendor/google.golang.org/grpc/balancer:go_default_library",
+        "//vendor/google.golang.org/grpc/balancer/leastrequest:go_default_library",
+        "//vendor/google.golang.org/grpc/balancer/pickfirst:go_default_library",
+        "//vendor/google.golang.org/grpc/balancer/ringhash:go_default_library",
+        "//vendor/google.golang.org/grpc/balancer/roundrobin:go_default_library",
+        "//vendor/google.golang.org/grpc/balancer/weightedroundrobin:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/ringhash:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/serviceconfig:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/xds/balancer/wrrlocality:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/xds/xdsclient/xdslbregistry:go_default_library",
+        "//vendor/google.golang.org/protobuf/proto:go_default_library",
+        "//vendor/google.golang.org/protobuf/types/known/structpb:go_default_library",
+    ],
+)

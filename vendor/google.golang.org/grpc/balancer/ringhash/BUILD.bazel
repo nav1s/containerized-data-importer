@@ -1,0 +1,35 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "config.go",
+        "logging.go",
+        "picker.go",
+        "ring.go",
+        "ringhash.go",
+    ],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/google.golang.org/grpc/balancer/ringhash",
+    importpath = "google.golang.org/grpc/balancer/ringhash",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/github.com/cespare/xxhash/v2:go_default_library",
+        "//vendor/google.golang.org/grpc/balancer:go_default_library",
+        "//vendor/google.golang.org/grpc/balancer/base:go_default_library",
+        "//vendor/google.golang.org/grpc/balancer/endpointsharding:go_default_library",
+        "//vendor/google.golang.org/grpc/balancer/lazy:go_default_library",
+        "//vendor/google.golang.org/grpc/balancer/pickfirst:go_default_library",
+        "//vendor/google.golang.org/grpc/connectivity:go_default_library",
+        "//vendor/google.golang.org/grpc/experimental/balancer/weight:go_default_library",
+        "//vendor/google.golang.org/grpc/grpclog:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/envconfig:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/grpclog:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/metadata:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/pretty:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/ringhash:go_default_library",
+        "//vendor/google.golang.org/grpc/metadata:go_default_library",
+        "//vendor/google.golang.org/grpc/resolver:go_default_library",
+        "//vendor/google.golang.org/grpc/resolver/ringhash:go_default_library",
+        "//vendor/google.golang.org/grpc/serviceconfig:go_default_library",
+    ],
+)
