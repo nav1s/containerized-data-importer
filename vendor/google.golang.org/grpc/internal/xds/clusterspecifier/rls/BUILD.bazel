@@ -1,0 +1,18 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["rls.go"],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/google.golang.org/grpc/internal/xds/clusterspecifier/rls",
+    importpath = "google.golang.org/grpc/internal/xds/clusterspecifier/rls",
+    visibility = ["//vendor/google.golang.org/grpc:__subpackages__"],
+    deps = [
+        "//vendor/google.golang.org/grpc/balancer:go_default_library",
+        "//vendor/google.golang.org/grpc/internal:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/proto/grpc_lookup_v1:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/xds/clusterspecifier:go_default_library",
+        "//vendor/google.golang.org/protobuf/encoding/protojson:go_default_library",
+        "//vendor/google.golang.org/protobuf/proto:go_default_library",
+        "//vendor/google.golang.org/protobuf/types/known/anypb:go_default_library",
+    ],
+)

@@ -1,0 +1,23 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "doc.go",
+        "exemplar.go",
+        "filter.go",
+        "fixed_size_reservoir.go",
+        "histogram_reservoir.go",
+        "reservoir.go",
+        "storage.go",
+        "value.go",
+    ],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/go.opentelemetry.io/otel/sdk/metric/exemplar",
+    importpath = "go.opentelemetry.io/otel/sdk/metric/exemplar",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/go.opentelemetry.io/otel/attribute:go_default_library",
+        "//vendor/go.opentelemetry.io/otel/sdk/metric/internal/reservoir:go_default_library",
+        "//vendor/go.opentelemetry.io/otel/trace:go_default_library",
+    ],
+)

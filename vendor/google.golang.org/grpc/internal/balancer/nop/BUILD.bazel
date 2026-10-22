@@ -1,0 +1,14 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["nop.go"],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/google.golang.org/grpc/internal/balancer/nop",
+    importpath = "google.golang.org/grpc/internal/balancer/nop",
+    visibility = ["//vendor/google.golang.org/grpc:__subpackages__"],
+    deps = [
+        "//vendor/google.golang.org/grpc/balancer:go_default_library",
+        "//vendor/google.golang.org/grpc/balancer/base:go_default_library",
+        "//vendor/google.golang.org/grpc/connectivity:go_default_library",
+    ],
+)

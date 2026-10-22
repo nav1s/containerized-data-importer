@@ -8,6 +8,7 @@ go_library(
         "types_helm_chart_repository.go",
         "types_project_helm_chart_repository.go",
         "zz_generated.deepcopy.go",
+        "zz_generated.model_name.go",
         "zz_generated.swagger_doc_generated.go",
     ],
     importmap = "kubevirt.io/containerized-data-importer/vendor/github.com/openshift/api/helm/v1beta1",

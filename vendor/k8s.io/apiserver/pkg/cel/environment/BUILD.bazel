@@ -20,7 +20,8 @@ go_library(
         "//vendor/k8s.io/apiserver/pkg/cel:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/cel/library:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/features:go_default_library",
+        "//vendor/k8s.io/apiserver/pkg/util/compatibility:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/util/feature:go_default_library",
-        "//vendor/k8s.io/apiserver/pkg/util/version:go_default_library",
+        "//vendor/k8s.io/component-base/compatibility:go_default_library",
     ],
 )

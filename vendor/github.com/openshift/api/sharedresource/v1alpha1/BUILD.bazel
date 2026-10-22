@@ -8,6 +8,7 @@ go_library(
         "types_shared_configmap.go",
         "types_shared_secret.go",
         "zz_generated.deepcopy.go",
+        "zz_generated.model_name.go",
         "zz_generated.swagger_doc_generated.go",
     ],
     importmap = "kubevirt.io/containerized-data-importer/vendor/github.com/openshift/api/sharedresource/v1alpha1",

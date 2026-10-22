@@ -1,0 +1,26 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "logging.go",
+        "weightedtarget.go",
+        "weightedtarget_config.go",
+    ],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/google.golang.org/grpc/balancer/weightedtarget",
+    importpath = "google.golang.org/grpc/balancer/weightedtarget",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/google.golang.org/grpc/balancer:go_default_library",
+        "//vendor/google.golang.org/grpc/balancer/weightedtarget/weightedaggregator:go_default_library",
+        "//vendor/google.golang.org/grpc/grpclog:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/balancergroup:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/grpclog:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/hierarchy:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/pretty:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/serviceconfig:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/wrr:go_default_library",
+        "//vendor/google.golang.org/grpc/resolver:go_default_library",
+        "//vendor/google.golang.org/grpc/serviceconfig:go_default_library",
+    ],
+)

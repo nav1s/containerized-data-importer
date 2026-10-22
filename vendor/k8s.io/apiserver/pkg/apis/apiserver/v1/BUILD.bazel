@@ -21,5 +21,7 @@ go_library(
         "//vendor/k8s.io/apimachinery/pkg/runtime:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/runtime/schema:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/apis/apiserver:go_default_library",
+        "//vendor/k8s.io/component-base/tracing/api/v1:go_default_library",
+        "//vendor/k8s.io/utils/ptr:go_default_library",
     ],
 )

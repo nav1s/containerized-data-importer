@@ -5,6 +5,7 @@ go_library(
     srcs = [
         "gen.go",
         "partialsuccess.go",
+        "version.go",
     ],
     importmap = "kubevirt.io/containerized-data-importer/vendor/go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc/internal",
     importpath = "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc/internal",

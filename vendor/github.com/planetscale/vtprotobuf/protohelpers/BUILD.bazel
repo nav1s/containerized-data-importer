@@ -1,0 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["protohelpers.go"],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/github.com/planetscale/vtprotobuf/protohelpers",
+    importpath = "github.com/planetscale/vtprotobuf/protohelpers",
+    visibility = ["//visibility:public"],
+)

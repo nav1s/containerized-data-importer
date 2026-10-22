@@ -9,6 +9,7 @@ go_library(
         "stringsource.go",
         "types.go",
         "zz_generated.deepcopy.go",
+        "zz_generated.model_name.go",
         "zz_generated.swagger_doc_generated.go",
     ],
     importmap = "kubevirt.io/containerized-data-importer/vendor/github.com/openshift/api/legacyconfig/v1",

@@ -7,6 +7,7 @@ go_library(
     importpath = "google.golang.org/api/iamcredentials/v1",
     visibility = ["//visibility:public"],
     deps = [
+        "//vendor/github.com/googleapis/gax-go/v2/internallog:go_default_library",
         "//vendor/google.golang.org/api/googleapi:go_default_library",
         "//vendor/google.golang.org/api/internal:go_default_library",
         "//vendor/google.golang.org/api/internal/gensupport:go_default_library",

@@ -7,6 +7,7 @@ go_library(
         "doc.go",
         "types.go",
         "zz_generated.deepcopy.go",
+        "zz_generated.model_name.go",
     ],
     importmap = "kubevirt.io/containerized-data-importer/vendor/k8s.io/component-base/tracing/api/v1",
     importpath = "k8s.io/component-base/tracing/api/v1",

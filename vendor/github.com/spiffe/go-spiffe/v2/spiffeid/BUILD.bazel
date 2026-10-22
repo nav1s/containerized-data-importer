@@ -1,0 +1,17 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "charset_backcompat_deny.go",
+        "errors.go",
+        "id.go",
+        "match.go",
+        "path.go",
+        "require.go",
+        "trustdomain.go",
+    ],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/github.com/spiffe/go-spiffe/v2/spiffeid",
+    importpath = "github.com/spiffe/go-spiffe/v2/spiffeid",
+    visibility = ["//visibility:public"],
+)

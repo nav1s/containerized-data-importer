@@ -8,6 +8,7 @@ go_library(
         "enum.go",
         "extension.go",
         "markers.go",
+        "model_names.go",
         "openapi.go",
         "union.go",
     ],

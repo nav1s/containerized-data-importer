@@ -1,0 +1,38 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "hash_policy.pb.go",
+        "hash_policy.pb.validate.go",
+        "http.pb.go",
+        "http.pb.validate.go",
+        "http_status.pb.go",
+        "http_status.pb.validate.go",
+        "percent.pb.go",
+        "percent.pb.validate.go",
+        "range.pb.go",
+        "range.pb.validate.go",
+        "ratelimit_strategy.pb.go",
+        "ratelimit_strategy.pb.validate.go",
+        "ratelimit_unit.pb.go",
+        "ratelimit_unit.pb.validate.go",
+        "semantic_version.pb.go",
+        "semantic_version.pb.validate.go",
+        "token_bucket.pb.go",
+        "token_bucket.pb.validate.go",
+    ],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/github.com/envoyproxy/go-control-plane/envoy/type/v3",
+    importpath = "github.com/envoyproxy/go-control-plane/envoy/type/v3",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/github.com/cncf/xds/go/udpa/annotations:go_default_library",
+        "//vendor/github.com/cncf/xds/go/xds/annotations/v3:go_default_library",
+        "//vendor/github.com/envoyproxy/protoc-gen-validate/validate:validate_go",
+        "//vendor/google.golang.org/protobuf/reflect/protoreflect:go_default_library",
+        "//vendor/google.golang.org/protobuf/runtime/protoimpl:go_default_library",
+        "//vendor/google.golang.org/protobuf/types/known/anypb:go_default_library",
+        "//vendor/google.golang.org/protobuf/types/known/durationpb:go_default_library",
+        "//vendor/google.golang.org/protobuf/types/known/wrapperspb:go_default_library",
+    ],
+)

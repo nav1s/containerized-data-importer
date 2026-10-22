@@ -6,6 +6,7 @@ go_library(
         "iam_policy.pb.go",
         "options.pb.go",
         "policy.pb.go",
+        "resource_policy_member.pb.go",
     ],
     importmap = "kubevirt.io/containerized-data-importer/vendor/cloud.google.com/go/iam/apiv1/iampb",
     importpath = "cloud.google.com/go/iam/apiv1/iampb",

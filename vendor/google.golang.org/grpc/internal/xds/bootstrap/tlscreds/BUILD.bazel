@@ -1,0 +1,17 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["bundle.go"],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/google.golang.org/grpc/internal/xds/bootstrap/tlscreds",
+    importpath = "google.golang.org/grpc/internal/xds/bootstrap/tlscreds",
+    visibility = ["//vendor/google.golang.org/grpc:__subpackages__"],
+    deps = [
+        "//vendor/github.com/spiffe/go-spiffe/v2/bundle/spiffebundle:go_default_library",
+        "//vendor/google.golang.org/grpc/credentials:go_default_library",
+        "//vendor/google.golang.org/grpc/credentials/tls/certprovider:go_default_library",
+        "//vendor/google.golang.org/grpc/credentials/tls/certprovider/pemfile:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/credentials/spiffe:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/envconfig:go_default_library",
+    ],
+)

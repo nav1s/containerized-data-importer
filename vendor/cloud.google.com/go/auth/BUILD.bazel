@@ -1,0 +1,17 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "auth.go",
+        "threelegged.go",
+    ],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/cloud.google.com/go/auth",
+    importpath = "cloud.google.com/go/auth",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/cloud.google.com/go/auth/internal:go_default_library",
+        "//vendor/cloud.google.com/go/auth/internal/jwt:go_default_library",
+        "//vendor/github.com/googleapis/gax-go/v2/internallog:go_default_library",
+    ],
+)

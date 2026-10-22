@@ -1,0 +1,28 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "dial_socketopt.go",
+        "directpath.go",
+        "grpctransport.go",
+        "pool.go",
+    ],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/cloud.google.com/go/auth/grpctransport",
+    importpath = "cloud.google.com/go/auth/grpctransport",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/cloud.google.com/go/auth:go_default_library",
+        "//vendor/cloud.google.com/go/auth/credentials:go_default_library",
+        "//vendor/cloud.google.com/go/auth/internal:go_default_library",
+        "//vendor/cloud.google.com/go/auth/internal/compute:go_default_library",
+        "//vendor/cloud.google.com/go/auth/internal/transport:go_default_library",
+        "//vendor/github.com/googleapis/gax-go/v2/internallog:go_default_library",
+        "//vendor/go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc:go_default_library",
+        "//vendor/google.golang.org/grpc:go_default_library",
+        "//vendor/google.golang.org/grpc/credentials:go_default_library",
+        "//vendor/google.golang.org/grpc/credentials/google:go_default_library",
+        "//vendor/google.golang.org/grpc/credentials/insecure:go_default_library",
+        "//vendor/google.golang.org/grpc/stats:go_default_library",
+    ],
+)

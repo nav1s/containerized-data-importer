@@ -1,0 +1,13 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["stdout_logger.go"],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/google.golang.org/grpc/authz/audit/stdout",
+    importpath = "google.golang.org/grpc/authz/audit/stdout",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/google.golang.org/grpc/authz/audit:go_default_library",
+        "//vendor/google.golang.org/grpc/grpclog:go_default_library",
+    ],
+)

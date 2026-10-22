@@ -1,0 +1,31 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "load_store.go",
+        "logging.go",
+        "lrs_stream.go",
+        "lrsclient.go",
+        "lrsconfig.go",
+    ],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/google.golang.org/grpc/internal/xds/clients/lrsclient",
+    importpath = "google.golang.org/grpc/internal/xds/clients/lrsclient",
+    visibility = ["//vendor/google.golang.org/grpc:__subpackages__"],
+    deps = [
+        "//vendor/github.com/envoyproxy/go-control-plane/envoy/config/core/v3:go_default_library",
+        "//vendor/github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3:go_default_library",
+        "//vendor/github.com/envoyproxy/go-control-plane/envoy/service/load_stats/v3:go_default_library",
+        "//vendor/google.golang.org/grpc/grpclog:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/backoff:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/envconfig:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/grpclog:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/pretty:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/xds/clients:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/xds/clients/internal:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/xds/clients/internal/backoff:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/xds/clients/lrsclient/internal:go_default_library",
+        "//vendor/google.golang.org/protobuf/proto:go_default_library",
+        "//vendor/google.golang.org/protobuf/types/known/durationpb:go_default_library",
+    ],
+)

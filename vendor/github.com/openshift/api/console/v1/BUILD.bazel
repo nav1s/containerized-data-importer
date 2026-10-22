@@ -15,6 +15,7 @@ go_library(
         "types_console_sample.go",
         "types_console_yaml_sample.go",
         "zz_generated.deepcopy.go",
+        "zz_generated.model_name.go",
         "zz_generated.swagger_doc_generated.go",
     ],
     importmap = "kubevirt.io/containerized-data-importer/vendor/github.com/openshift/api/console/v1",

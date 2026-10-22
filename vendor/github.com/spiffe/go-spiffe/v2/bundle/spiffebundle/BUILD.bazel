@@ -1,0 +1,22 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "bundle.go",
+        "doc.go",
+        "set.go",
+        "source.go",
+    ],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/github.com/spiffe/go-spiffe/v2/bundle/spiffebundle",
+    importpath = "github.com/spiffe/go-spiffe/v2/bundle/spiffebundle",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/github.com/go-jose/go-jose/v4:go_default_library",
+        "//vendor/github.com/spiffe/go-spiffe/v2/bundle/jwtbundle:go_default_library",
+        "//vendor/github.com/spiffe/go-spiffe/v2/bundle/x509bundle:go_default_library",
+        "//vendor/github.com/spiffe/go-spiffe/v2/internal/jwtutil:go_default_library",
+        "//vendor/github.com/spiffe/go-spiffe/v2/internal/x509util:go_default_library",
+        "//vendor/github.com/spiffe/go-spiffe/v2/spiffeid:go_default_library",
+    ],
+)

@@ -5,6 +5,7 @@ go_library(
     srcs = [
         "doc.go",
         "idl_tag.go",
+        "list_type_streaming_tags.go",
         "names_match.go",
         "omitempty_match_case.go",
     ],

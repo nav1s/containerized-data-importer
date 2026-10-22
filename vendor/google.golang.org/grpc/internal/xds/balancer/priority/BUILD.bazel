@@ -1,0 +1,32 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "balancer.go",
+        "balancer_child.go",
+        "balancer_priority.go",
+        "config.go",
+        "ignore_resolve_now.go",
+        "logging.go",
+    ],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/google.golang.org/grpc/internal/xds/balancer/priority",
+    importpath = "google.golang.org/grpc/internal/xds/balancer/priority",
+    visibility = ["//vendor/google.golang.org/grpc:__subpackages__"],
+    deps = [
+        "//vendor/google.golang.org/grpc/balancer:go_default_library",
+        "//vendor/google.golang.org/grpc/balancer/base:go_default_library",
+        "//vendor/google.golang.org/grpc/connectivity:go_default_library",
+        "//vendor/google.golang.org/grpc/grpclog:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/balancergroup:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/buffer:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/envconfig:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/grpclog:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/grpcsync:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/hierarchy:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/pretty:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/serviceconfig:go_default_library",
+        "//vendor/google.golang.org/grpc/resolver:go_default_library",
+        "//vendor/google.golang.org/grpc/serviceconfig:go_default_library",
+    ],
+)

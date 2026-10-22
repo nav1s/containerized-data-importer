@@ -23,7 +23,6 @@ go_library(
         "//vendor/k8s.io/apiserver/pkg/authentication/cel:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/authorization/cel:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/cel:go_default_library",
-        "//vendor/k8s.io/apiserver/pkg/cel/environment:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/features:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/util/feature:go_default_library",
         "//vendor/k8s.io/client-go/util/cert:go_default_library",

@@ -1,0 +1,35 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "conn_wrapper.go",
+        "filter_chain_manager.go",
+        "listener_wrapper.go",
+        "rds_handler.go",
+        "routing.go",
+    ],
+    importmap = "kubevirt.io/containerized-data-importer/vendor/google.golang.org/grpc/internal/xds/server",
+    importpath = "google.golang.org/grpc/internal/xds/server",
+    visibility = ["//vendor/google.golang.org/grpc:__subpackages__"],
+    deps = [
+        "//vendor/google.golang.org/grpc:go_default_library",
+        "//vendor/google.golang.org/grpc/backoff:go_default_library",
+        "//vendor/google.golang.org/grpc/codes:go_default_library",
+        "//vendor/google.golang.org/grpc/connectivity:go_default_library",
+        "//vendor/google.golang.org/grpc/credentials/tls/certprovider:go_default_library",
+        "//vendor/google.golang.org/grpc/grpclog:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/backoff:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/credentials/xds:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/grpclog:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/grpcsync:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/resolver:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/transport:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/xds/bootstrap:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/xds/clients/xdsclient:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/xds/httpfilter:go_default_library",
+        "//vendor/google.golang.org/grpc/internal/xds/xdsclient/xdsresource:go_default_library",
+        "//vendor/google.golang.org/grpc/metadata:go_default_library",
+        "//vendor/google.golang.org/grpc/status:go_default_library",
+    ],
+)
