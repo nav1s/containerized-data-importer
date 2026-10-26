@@ -6,5 +6,5 @@ go_library(
     importmap = "kubevirt.io/containerized-data-importer/vendor/github.com/openshift/client-go/route/applyconfigurations/internal",
     importpath = "github.com/openshift/client-go/route/applyconfigurations/internal",
     visibility = ["//vendor/github.com/openshift/client-go/route/applyconfigurations:__subpackages__"],
-    deps = ["//vendor/sigs.k8s.io/structured-merge-diff/v4/typed:go_default_library"],
+    deps = ["//vendor/sigs.k8s.io/structured-merge-diff/v6/typed:go_default_library"],
 )

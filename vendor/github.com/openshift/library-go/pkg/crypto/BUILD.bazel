@@ -3,13 +3,18 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "go_default_library",
     srcs = [
+        "cert_config.go",
         "crypto.go",
+        "keygen.go",
+        "options.go",
         "rotation.go",
+        "tls_adherence.go",
     ],
     importmap = "kubevirt.io/containerized-data-importer/vendor/github.com/openshift/library-go/pkg/crypto",
     importpath = "github.com/openshift/library-go/pkg/crypto",
     visibility = ["//visibility:public"],
     deps = [
+        "//vendor/github.com/openshift/api/config/v1:go_default_library",
         "//vendor/k8s.io/apimachinery/pkg/util/sets:go_default_library",
         "//vendor/k8s.io/apiserver/pkg/authentication/user:go_default_library",
         "//vendor/k8s.io/client-go/util/cert:go_default_library",

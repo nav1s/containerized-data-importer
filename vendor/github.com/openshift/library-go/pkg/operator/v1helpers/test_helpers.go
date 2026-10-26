@@ -24,16 +24,28 @@ import (
 
 // NewFakeSharedIndexInformer returns a fake shared index informer, suitable to use in static pod controller unit tests.
 func NewFakeSharedIndexInformer() cache.SharedIndexInformer {
-	return &fakeSharedIndexInformer{}
+	return &fakeSharedIndexInformer{synced: newFakeSyncedChan()}
 }
 
-type fakeSharedIndexInformer struct{}
+type fakeSharedIndexInformer struct {
+	synced chan struct{}
+}
+
+func newFakeSyncedChan() chan struct{} {
+	ch := make(chan struct{})
+	close(ch)
+	return ch
+}
 
 func (i fakeSharedIndexInformer) AddEventHandler(handler cache.ResourceEventHandler) (cache.ResourceEventHandlerRegistration, error) {
 	return nil, nil
 }
 
 func (i fakeSharedIndexInformer) AddEventHandlerWithResyncPeriod(handler cache.ResourceEventHandler, resyncPeriod time.Duration) (cache.ResourceEventHandlerRegistration, error) {
+	return nil, nil
+}
+
+func (i fakeSharedIndexInformer) AddEventHandlerWithOptions(handler cache.ResourceEventHandler, options cache.HandlerOptions) (cache.ResourceEventHandlerRegistration, error) {
 	return nil, nil
 }
 
@@ -57,8 +69,33 @@ func (fakeSharedIndexInformer) Run(stopCh <-chan struct{}) {
 	panic("implement me")
 }
 
-func (fakeSharedIndexInformer) HasSynced() bool {
-	return true
+func (fakeSharedIndexInformer) RunWithContext(ctx context.Context) {
+	panic("implement me")
+}
+
+func (f fakeSharedIndexInformer) HasSynced() bool {
+	select {
+	case <-f.synced:
+		return true
+	default:
+		return false
+	}
+}
+
+type fakeSharedIndexInformerDone struct {
+	synced chan struct{}
+}
+
+func (fd *fakeSharedIndexInformerDone) Name() string {
+	return "FakeSharedIndexInformer"
+}
+
+func (fd *fakeSharedIndexInformerDone) Done() <-chan struct{} {
+	return fd.synced
+}
+
+func (f fakeSharedIndexInformer) HasSyncedChecker() cache.DoneChecker {
+	return &fakeSharedIndexInformerDone{synced: f.synced}
 }
 
 func (fakeSharedIndexInformer) LastSyncResourceVersion() string {
@@ -74,6 +111,10 @@ func (fakeSharedIndexInformer) GetIndexer() cache.Indexer {
 }
 
 func (fakeSharedIndexInformer) SetWatchErrorHandler(handler cache.WatchErrorHandler) error {
+	panic("implement me")
+}
+
+func (fakeSharedIndexInformer) SetWatchErrorHandlerWithContext(handler cache.WatchErrorHandlerWithContext) error {
 	panic("implement me")
 }
 
@@ -106,7 +147,7 @@ type fakeStaticPodOperatorClient struct {
 }
 
 func (c *fakeStaticPodOperatorClient) Informer() cache.SharedIndexInformer {
-	return &fakeSharedIndexInformer{}
+	return NewFakeSharedIndexInformer()
 
 }
 func (c *fakeStaticPodOperatorClient) GetObjectMeta() (*metav1.ObjectMeta, error) {
@@ -289,7 +330,7 @@ type fakeOperatorClient struct {
 }
 
 func (c *fakeOperatorClient) Informer() cache.SharedIndexInformer {
-	return &fakeSharedIndexInformer{}
+	return NewFakeSharedIndexInformer()
 }
 
 func (c *fakeOperatorClient) GetObjectMeta() (*metav1.ObjectMeta, error) {
