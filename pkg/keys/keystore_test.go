@@ -100,7 +100,7 @@ func checkAction(expected, actual core.Action) {
 
 		if !reflect.DeepEqual(expObject, object) {
 			Fail(fmt.Sprintf("Action %s %s has wrong object\nDiff:\n %s",
-				a.GetVerb(), a.GetResource().Resource, diff.ObjectGoPrintDiff(expObject, object)))
+				a.GetVerb(), a.GetResource().Resource, diff.Diff(expObject, object)))
 		}
 	case core.UpdateActionImpl:
 		e, _ := expected.(core.UpdateAction)
@@ -109,7 +109,7 @@ func checkAction(expected, actual core.Action) {
 
 		if !reflect.DeepEqual(expObject, object) {
 			Fail(fmt.Sprintf("Action %s %s has wrong object\nDiff:\n %s",
-				a.GetVerb(), a.GetResource().Resource, diff.ObjectGoPrintDiff(expObject, object)))
+				a.GetVerb(), a.GetResource().Resource, diff.Diff(expObject, object)))
 		}
 	case core.PatchAction:
 		e, _ := expected.(core.PatchAction)
@@ -118,7 +118,7 @@ func checkAction(expected, actual core.Action) {
 
 		if !reflect.DeepEqual(expPatch, expPatch) {
 			Fail(fmt.Sprintf("Action %s %s has wrong patch\nDiff:\n %s",
-				a.GetVerb(), a.GetResource().Resource, diff.ObjectGoPrintDiff(expPatch, patch)))
+				a.GetVerb(), a.GetResource().Resource, diff.Diff(expPatch, patch)))
 		}
 	}
 }
