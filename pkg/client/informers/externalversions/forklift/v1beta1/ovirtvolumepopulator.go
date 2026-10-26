@@ -19,24 +19,25 @@ limitations under the License.
 package v1beta1
 
 import (
-	"context"
+	context "context"
 	time "time"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
+	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	watch "k8s.io/apimachinery/pkg/watch"
 	cache "k8s.io/client-go/tools/cache"
-	forkliftv1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/forklift/v1beta1"
+	apisforkliftv1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/forklift/v1beta1"
 	versioned "kubevirt.io/containerized-data-importer/pkg/client/clientset/versioned"
 	internalinterfaces "kubevirt.io/containerized-data-importer/pkg/client/informers/externalversions/internalinterfaces"
-	v1beta1 "kubevirt.io/containerized-data-importer/pkg/client/listers/forklift/v1beta1"
+	forkliftv1beta1 "kubevirt.io/containerized-data-importer/pkg/client/listers/forklift/v1beta1"
 )
 
 // OvirtVolumePopulatorInformer provides access to a shared informer and lister for
 // OvirtVolumePopulators.
 type OvirtVolumePopulatorInformer interface {
 	Informer() cache.SharedIndexInformer
-	Lister() v1beta1.OvirtVolumePopulatorLister
+	Lister() forkliftv1beta1.OvirtVolumePopulatorLister
 }
 
 type ovirtVolumePopulatorInformer struct {
@@ -49,42 +50,67 @@ type ovirtVolumePopulatorInformer struct {
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
 func NewOvirtVolumePopulatorInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewFilteredOvirtVolumePopulatorInformer(client, namespace, resyncPeriod, indexers, nil)
+	return NewOvirtVolumePopulatorInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers})
 }
 
 // NewFilteredOvirtVolumePopulatorInformer constructs a new informer for OvirtVolumePopulator type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
 func NewFilteredOvirtVolumePopulatorInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
-	return cache.NewSharedIndexInformer(
-		&cache.ListWatch{
-			ListFunc: func(options v1.ListOptions) (runtime.Object, error) {
+	return NewOvirtVolumePopulatorInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers, TweakListOptions: tweakListOptions})
+}
+
+// NewOvirtVolumePopulatorInformerWithOptions constructs a new informer for OvirtVolumePopulator type with additional options.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewOvirtVolumePopulatorInformerWithOptions(client versioned.Interface, namespace string, options internalinterfaces.InformerOptions) cache.SharedIndexInformer {
+	gvr := schema.GroupVersionResource{Group: "forklift.cdi.kubevirt.io", Version: "v1beta1", Resource: "ovirtvolumepopulators"}
+	identifier := options.InformerName.WithResource(gvr)
+	tweakListOptions := options.TweakListOptions
+	return cache.NewSharedIndexInformerWithOptions(
+		cache.ToListWatcherWithWatchListSemantics(&cache.ListWatch{
+			ListFunc: func(opts v1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
-					tweakListOptions(&options)
+					tweakListOptions(&opts)
 				}
-				return client.ForkliftV1beta1().OvirtVolumePopulators(namespace).List(context.TODO(), options)
+				return client.ForkliftV1beta1().OvirtVolumePopulators(namespace).List(context.Background(), opts)
 			},
-			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
+			WatchFunc: func(opts v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
-					tweakListOptions(&options)
+					tweakListOptions(&opts)
 				}
-				return client.ForkliftV1beta1().OvirtVolumePopulators(namespace).Watch(context.TODO(), options)
+				return client.ForkliftV1beta1().OvirtVolumePopulators(namespace).Watch(context.Background(), opts)
 			},
+			ListWithContextFunc: func(ctx context.Context, opts v1.ListOptions) (runtime.Object, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&opts)
+				}
+				return client.ForkliftV1beta1().OvirtVolumePopulators(namespace).List(ctx, opts)
+			},
+			WatchFuncWithContext: func(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&opts)
+				}
+				return client.ForkliftV1beta1().OvirtVolumePopulators(namespace).Watch(ctx, opts)
+			},
+		}, client),
+		&apisforkliftv1beta1.OvirtVolumePopulator{},
+		cache.SharedIndexInformerOptions{
+			ResyncPeriod: options.ResyncPeriod,
+			Indexers:     options.Indexers,
+			Identifier:   identifier,
 		},
-		&forkliftv1beta1.OvirtVolumePopulator{},
-		resyncPeriod,
-		indexers,
 	)
 }
 
 func (f *ovirtVolumePopulatorInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewFilteredOvirtVolumePopulatorInformer(client, f.namespace, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
+	return NewOvirtVolumePopulatorInformerWithOptions(client, f.namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, InformerName: f.factory.InformerName(), TweakListOptions: f.tweakListOptions})
 }
 
 func (f *ovirtVolumePopulatorInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&forkliftv1beta1.OvirtVolumePopulator{}, f.defaultInformer)
+	return f.factory.InformerFor(&apisforkliftv1beta1.OvirtVolumePopulator{}, f.defaultInformer)
 }
 
-func (f *ovirtVolumePopulatorInformer) Lister() v1beta1.OvirtVolumePopulatorLister {
-	return v1beta1.NewOvirtVolumePopulatorLister(f.Informer().GetIndexer())
+func (f *ovirtVolumePopulatorInformer) Lister() forkliftv1beta1.OvirtVolumePopulatorLister {
+	return forkliftv1beta1.NewOvirtVolumePopulatorLister(f.Informer().GetIndexer())
 }

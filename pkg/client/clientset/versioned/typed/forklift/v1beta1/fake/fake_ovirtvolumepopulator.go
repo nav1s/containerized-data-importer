@@ -19,129 +19,34 @@ limitations under the License.
 package fake
 
 import (
-	"context"
-
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	labels "k8s.io/apimachinery/pkg/labels"
-	types "k8s.io/apimachinery/pkg/types"
-	watch "k8s.io/apimachinery/pkg/watch"
-	testing "k8s.io/client-go/testing"
+	gentype "k8s.io/client-go/gentype"
 	v1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/forklift/v1beta1"
+	forkliftv1beta1 "kubevirt.io/containerized-data-importer/pkg/client/clientset/versioned/typed/forklift/v1beta1"
 )
 
-// FakeOvirtVolumePopulators implements OvirtVolumePopulatorInterface
-type FakeOvirtVolumePopulators struct {
+// fakeOvirtVolumePopulators implements OvirtVolumePopulatorInterface
+type fakeOvirtVolumePopulators struct {
+	*gentype.FakeClientWithList[*v1beta1.OvirtVolumePopulator, *v1beta1.OvirtVolumePopulatorList]
 	Fake *FakeForkliftV1beta1
-	ns   string
 }
 
-var ovirtvolumepopulatorsResource = v1beta1.SchemeGroupVersion.WithResource("ovirtvolumepopulators")
-
-var ovirtvolumepopulatorsKind = v1beta1.SchemeGroupVersion.WithKind("OvirtVolumePopulator")
-
-// Get takes name of the ovirtVolumePopulator, and returns the corresponding ovirtVolumePopulator object, and an error if there is any.
-func (c *FakeOvirtVolumePopulators) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1beta1.OvirtVolumePopulator, err error) {
-	emptyResult := &v1beta1.OvirtVolumePopulator{}
-	obj, err := c.Fake.
-		Invokes(testing.NewGetActionWithOptions(ovirtvolumepopulatorsResource, c.ns, name, options), emptyResult)
-
-	if obj == nil {
-		return emptyResult, err
+func newFakeOvirtVolumePopulators(fake *FakeForkliftV1beta1, namespace string) forkliftv1beta1.OvirtVolumePopulatorInterface {
+	return &fakeOvirtVolumePopulators{
+		gentype.NewFakeClientWithList[*v1beta1.OvirtVolumePopulator, *v1beta1.OvirtVolumePopulatorList](
+			fake.Fake,
+			namespace,
+			v1beta1.SchemeGroupVersion.WithResource("ovirtvolumepopulators"),
+			v1beta1.SchemeGroupVersion.WithKind("OvirtVolumePopulator"),
+			func() *v1beta1.OvirtVolumePopulator { return &v1beta1.OvirtVolumePopulator{} },
+			func() *v1beta1.OvirtVolumePopulatorList { return &v1beta1.OvirtVolumePopulatorList{} },
+			func(dst, src *v1beta1.OvirtVolumePopulatorList) { dst.ListMeta = src.ListMeta },
+			func(list *v1beta1.OvirtVolumePopulatorList) []*v1beta1.OvirtVolumePopulator {
+				return gentype.ToPointerSlice(list.Items)
+			},
+			func(list *v1beta1.OvirtVolumePopulatorList, items []*v1beta1.OvirtVolumePopulator) {
+				list.Items = gentype.FromPointerSlice(items)
+			},
+		),
+		fake,
 	}
-	return obj.(*v1beta1.OvirtVolumePopulator), err
-}
-
-// List takes label and field selectors, and returns the list of OvirtVolumePopulators that match those selectors.
-func (c *FakeOvirtVolumePopulators) List(ctx context.Context, opts v1.ListOptions) (result *v1beta1.OvirtVolumePopulatorList, err error) {
-	emptyResult := &v1beta1.OvirtVolumePopulatorList{}
-	obj, err := c.Fake.
-		Invokes(testing.NewListActionWithOptions(ovirtvolumepopulatorsResource, ovirtvolumepopulatorsKind, c.ns, opts), emptyResult)
-
-	if obj == nil {
-		return emptyResult, err
-	}
-
-	label, _, _ := testing.ExtractFromListOptions(opts)
-	if label == nil {
-		label = labels.Everything()
-	}
-	list := &v1beta1.OvirtVolumePopulatorList{ListMeta: obj.(*v1beta1.OvirtVolumePopulatorList).ListMeta}
-	for _, item := range obj.(*v1beta1.OvirtVolumePopulatorList).Items {
-		if label.Matches(labels.Set(item.Labels)) {
-			list.Items = append(list.Items, item)
-		}
-	}
-	return list, err
-}
-
-// Watch returns a watch.Interface that watches the requested ovirtVolumePopulators.
-func (c *FakeOvirtVolumePopulators) Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
-	return c.Fake.
-		InvokesWatch(testing.NewWatchActionWithOptions(ovirtvolumepopulatorsResource, c.ns, opts))
-
-}
-
-// Create takes the representation of a ovirtVolumePopulator and creates it.  Returns the server's representation of the ovirtVolumePopulator, and an error, if there is any.
-func (c *FakeOvirtVolumePopulators) Create(ctx context.Context, ovirtVolumePopulator *v1beta1.OvirtVolumePopulator, opts v1.CreateOptions) (result *v1beta1.OvirtVolumePopulator, err error) {
-	emptyResult := &v1beta1.OvirtVolumePopulator{}
-	obj, err := c.Fake.
-		Invokes(testing.NewCreateActionWithOptions(ovirtvolumepopulatorsResource, c.ns, ovirtVolumePopulator, opts), emptyResult)
-
-	if obj == nil {
-		return emptyResult, err
-	}
-	return obj.(*v1beta1.OvirtVolumePopulator), err
-}
-
-// Update takes the representation of a ovirtVolumePopulator and updates it. Returns the server's representation of the ovirtVolumePopulator, and an error, if there is any.
-func (c *FakeOvirtVolumePopulators) Update(ctx context.Context, ovirtVolumePopulator *v1beta1.OvirtVolumePopulator, opts v1.UpdateOptions) (result *v1beta1.OvirtVolumePopulator, err error) {
-	emptyResult := &v1beta1.OvirtVolumePopulator{}
-	obj, err := c.Fake.
-		Invokes(testing.NewUpdateActionWithOptions(ovirtvolumepopulatorsResource, c.ns, ovirtVolumePopulator, opts), emptyResult)
-
-	if obj == nil {
-		return emptyResult, err
-	}
-	return obj.(*v1beta1.OvirtVolumePopulator), err
-}
-
-// UpdateStatus was generated because the type contains a Status member.
-// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-func (c *FakeOvirtVolumePopulators) UpdateStatus(ctx context.Context, ovirtVolumePopulator *v1beta1.OvirtVolumePopulator, opts v1.UpdateOptions) (result *v1beta1.OvirtVolumePopulator, err error) {
-	emptyResult := &v1beta1.OvirtVolumePopulator{}
-	obj, err := c.Fake.
-		Invokes(testing.NewUpdateSubresourceActionWithOptions(ovirtvolumepopulatorsResource, "status", c.ns, ovirtVolumePopulator, opts), emptyResult)
-
-	if obj == nil {
-		return emptyResult, err
-	}
-	return obj.(*v1beta1.OvirtVolumePopulator), err
-}
-
-// Delete takes name of the ovirtVolumePopulator and deletes it. Returns an error if one occurs.
-func (c *FakeOvirtVolumePopulators) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
-	_, err := c.Fake.
-		Invokes(testing.NewDeleteActionWithOptions(ovirtvolumepopulatorsResource, c.ns, name, opts), &v1beta1.OvirtVolumePopulator{})
-
-	return err
-}
-
-// DeleteCollection deletes a collection of objects.
-func (c *FakeOvirtVolumePopulators) DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error {
-	action := testing.NewDeleteCollectionActionWithOptions(ovirtvolumepopulatorsResource, c.ns, opts, listOpts)
-
-	_, err := c.Fake.Invokes(action, &v1beta1.OvirtVolumePopulatorList{})
-	return err
-}
-
-// Patch applies the patch and returns the patched ovirtVolumePopulator.
-func (c *FakeOvirtVolumePopulators) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.OvirtVolumePopulator, err error) {
-	emptyResult := &v1beta1.OvirtVolumePopulator{}
-	obj, err := c.Fake.
-		Invokes(testing.NewPatchSubresourceActionWithOptions(ovirtvolumepopulatorsResource, c.ns, name, pt, data, opts, subresources...), emptyResult)
-
-	if obj == nil {
-		return emptyResult, err
-	}
-	return obj.(*v1beta1.OvirtVolumePopulator), err
 }

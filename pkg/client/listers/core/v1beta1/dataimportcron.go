@@ -19,10 +19,10 @@ limitations under the License.
 package v1beta1
 
 import (
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/client-go/listers"
-	"k8s.io/client-go/tools/cache"
-	v1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1beta1"
+	labels "k8s.io/apimachinery/pkg/labels"
+	listers "k8s.io/client-go/listers"
+	cache "k8s.io/client-go/tools/cache"
+	corev1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1beta1"
 )
 
 // DataImportCronLister helps list DataImportCrons.
@@ -30,7 +30,7 @@ import (
 type DataImportCronLister interface {
 	// List lists all DataImportCrons in the indexer.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.DataImportCron, err error)
+	List(selector labels.Selector) (ret []*corev1beta1.DataImportCron, err error)
 	// DataImportCrons returns an object that can list and get DataImportCrons.
 	DataImportCrons(namespace string) DataImportCronNamespaceLister
 	DataImportCronListerExpansion
@@ -38,17 +38,17 @@ type DataImportCronLister interface {
 
 // dataImportCronLister implements the DataImportCronLister interface.
 type dataImportCronLister struct {
-	listers.ResourceIndexer[*v1beta1.DataImportCron]
+	listers.ResourceIndexer[*corev1beta1.DataImportCron]
 }
 
 // NewDataImportCronLister returns a new DataImportCronLister.
 func NewDataImportCronLister(indexer cache.Indexer) DataImportCronLister {
-	return &dataImportCronLister{listers.New[*v1beta1.DataImportCron](indexer, v1beta1.Resource("dataimportcron"))}
+	return &dataImportCronLister{listers.New[*corev1beta1.DataImportCron](indexer, corev1beta1.Resource("dataimportcron"))}
 }
 
 // DataImportCrons returns an object that can list and get DataImportCrons.
 func (s *dataImportCronLister) DataImportCrons(namespace string) DataImportCronNamespaceLister {
-	return dataImportCronNamespaceLister{listers.NewNamespaced[*v1beta1.DataImportCron](s.ResourceIndexer, namespace)}
+	return dataImportCronNamespaceLister{listers.NewNamespaced[*corev1beta1.DataImportCron](s.ResourceIndexer, namespace)}
 }
 
 // DataImportCronNamespaceLister helps list and get DataImportCrons.
@@ -56,15 +56,15 @@ func (s *dataImportCronLister) DataImportCrons(namespace string) DataImportCronN
 type DataImportCronNamespaceLister interface {
 	// List lists all DataImportCrons in the indexer for a given namespace.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.DataImportCron, err error)
+	List(selector labels.Selector) (ret []*corev1beta1.DataImportCron, err error)
 	// Get retrieves the DataImportCron from the indexer for a given namespace and name.
 	// Objects returned here must be treated as read-only.
-	Get(name string) (*v1beta1.DataImportCron, error)
+	Get(name string) (*corev1beta1.DataImportCron, error)
 	DataImportCronNamespaceListerExpansion
 }
 
 // dataImportCronNamespaceLister implements the DataImportCronNamespaceLister
 // interface.
 type dataImportCronNamespaceLister struct {
-	listers.ResourceIndexer[*v1beta1.DataImportCron]
+	listers.ResourceIndexer[*corev1beta1.DataImportCron]
 }

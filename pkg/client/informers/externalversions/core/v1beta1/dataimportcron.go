@@ -19,24 +19,25 @@ limitations under the License.
 package v1beta1
 
 import (
-	"context"
+	context "context"
 	time "time"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
+	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	watch "k8s.io/apimachinery/pkg/watch"
 	cache "k8s.io/client-go/tools/cache"
-	corev1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1beta1"
+	apiscorev1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1beta1"
 	versioned "kubevirt.io/containerized-data-importer/pkg/client/clientset/versioned"
 	internalinterfaces "kubevirt.io/containerized-data-importer/pkg/client/informers/externalversions/internalinterfaces"
-	v1beta1 "kubevirt.io/containerized-data-importer/pkg/client/listers/core/v1beta1"
+	corev1beta1 "kubevirt.io/containerized-data-importer/pkg/client/listers/core/v1beta1"
 )
 
 // DataImportCronInformer provides access to a shared informer and lister for
 // DataImportCrons.
 type DataImportCronInformer interface {
 	Informer() cache.SharedIndexInformer
-	Lister() v1beta1.DataImportCronLister
+	Lister() corev1beta1.DataImportCronLister
 }
 
 type dataImportCronInformer struct {
@@ -49,42 +50,67 @@ type dataImportCronInformer struct {
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
 func NewDataImportCronInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewFilteredDataImportCronInformer(client, namespace, resyncPeriod, indexers, nil)
+	return NewDataImportCronInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers})
 }
 
 // NewFilteredDataImportCronInformer constructs a new informer for DataImportCron type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
 func NewFilteredDataImportCronInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
-	return cache.NewSharedIndexInformer(
-		&cache.ListWatch{
-			ListFunc: func(options v1.ListOptions) (runtime.Object, error) {
+	return NewDataImportCronInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers, TweakListOptions: tweakListOptions})
+}
+
+// NewDataImportCronInformerWithOptions constructs a new informer for DataImportCron type with additional options.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewDataImportCronInformerWithOptions(client versioned.Interface, namespace string, options internalinterfaces.InformerOptions) cache.SharedIndexInformer {
+	gvr := schema.GroupVersionResource{Group: "cdi.kubevirt.io", Version: "v1beta1", Resource: "dataimportcrons"}
+	identifier := options.InformerName.WithResource(gvr)
+	tweakListOptions := options.TweakListOptions
+	return cache.NewSharedIndexInformerWithOptions(
+		cache.ToListWatcherWithWatchListSemantics(&cache.ListWatch{
+			ListFunc: func(opts v1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
-					tweakListOptions(&options)
+					tweakListOptions(&opts)
 				}
-				return client.CdiV1beta1().DataImportCrons(namespace).List(context.TODO(), options)
+				return client.CdiV1beta1().DataImportCrons(namespace).List(context.Background(), opts)
 			},
-			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
+			WatchFunc: func(opts v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
-					tweakListOptions(&options)
+					tweakListOptions(&opts)
 				}
-				return client.CdiV1beta1().DataImportCrons(namespace).Watch(context.TODO(), options)
+				return client.CdiV1beta1().DataImportCrons(namespace).Watch(context.Background(), opts)
 			},
+			ListWithContextFunc: func(ctx context.Context, opts v1.ListOptions) (runtime.Object, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&opts)
+				}
+				return client.CdiV1beta1().DataImportCrons(namespace).List(ctx, opts)
+			},
+			WatchFuncWithContext: func(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&opts)
+				}
+				return client.CdiV1beta1().DataImportCrons(namespace).Watch(ctx, opts)
+			},
+		}, client),
+		&apiscorev1beta1.DataImportCron{},
+		cache.SharedIndexInformerOptions{
+			ResyncPeriod: options.ResyncPeriod,
+			Indexers:     options.Indexers,
+			Identifier:   identifier,
 		},
-		&corev1beta1.DataImportCron{},
-		resyncPeriod,
-		indexers,
 	)
 }
 
 func (f *dataImportCronInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewFilteredDataImportCronInformer(client, f.namespace, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
+	return NewDataImportCronInformerWithOptions(client, f.namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, InformerName: f.factory.InformerName(), TweakListOptions: f.tweakListOptions})
 }
 
 func (f *dataImportCronInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&corev1beta1.DataImportCron{}, f.defaultInformer)
+	return f.factory.InformerFor(&apiscorev1beta1.DataImportCron{}, f.defaultInformer)
 }
 
-func (f *dataImportCronInformer) Lister() v1beta1.DataImportCronLister {
-	return v1beta1.NewDataImportCronLister(f.Informer().GetIndexer())
+func (f *dataImportCronInformer) Lister() corev1beta1.DataImportCronLister {
+	return corev1beta1.NewDataImportCronLister(f.Informer().GetIndexer())
 }

@@ -19,24 +19,25 @@ limitations under the License.
 package v1beta1
 
 import (
-	"context"
+	context "context"
 	time "time"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
+	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	watch "k8s.io/apimachinery/pkg/watch"
 	cache "k8s.io/client-go/tools/cache"
-	forkliftv1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/forklift/v1beta1"
+	apisforkliftv1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/forklift/v1beta1"
 	versioned "kubevirt.io/containerized-data-importer/pkg/client/clientset/versioned"
 	internalinterfaces "kubevirt.io/containerized-data-importer/pkg/client/informers/externalversions/internalinterfaces"
-	v1beta1 "kubevirt.io/containerized-data-importer/pkg/client/listers/forklift/v1beta1"
+	forkliftv1beta1 "kubevirt.io/containerized-data-importer/pkg/client/listers/forklift/v1beta1"
 )
 
 // OpenstackVolumePopulatorInformer provides access to a shared informer and lister for
 // OpenstackVolumePopulators.
 type OpenstackVolumePopulatorInformer interface {
 	Informer() cache.SharedIndexInformer
-	Lister() v1beta1.OpenstackVolumePopulatorLister
+	Lister() forkliftv1beta1.OpenstackVolumePopulatorLister
 }
 
 type openstackVolumePopulatorInformer struct {
@@ -49,42 +50,67 @@ type openstackVolumePopulatorInformer struct {
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
 func NewOpenstackVolumePopulatorInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewFilteredOpenstackVolumePopulatorInformer(client, namespace, resyncPeriod, indexers, nil)
+	return NewOpenstackVolumePopulatorInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers})
 }
 
 // NewFilteredOpenstackVolumePopulatorInformer constructs a new informer for OpenstackVolumePopulator type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
 func NewFilteredOpenstackVolumePopulatorInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
-	return cache.NewSharedIndexInformer(
-		&cache.ListWatch{
-			ListFunc: func(options v1.ListOptions) (runtime.Object, error) {
+	return NewOpenstackVolumePopulatorInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers, TweakListOptions: tweakListOptions})
+}
+
+// NewOpenstackVolumePopulatorInformerWithOptions constructs a new informer for OpenstackVolumePopulator type with additional options.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewOpenstackVolumePopulatorInformerWithOptions(client versioned.Interface, namespace string, options internalinterfaces.InformerOptions) cache.SharedIndexInformer {
+	gvr := schema.GroupVersionResource{Group: "forklift.cdi.kubevirt.io", Version: "v1beta1", Resource: "openstackvolumepopulators"}
+	identifier := options.InformerName.WithResource(gvr)
+	tweakListOptions := options.TweakListOptions
+	return cache.NewSharedIndexInformerWithOptions(
+		cache.ToListWatcherWithWatchListSemantics(&cache.ListWatch{
+			ListFunc: func(opts v1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
-					tweakListOptions(&options)
+					tweakListOptions(&opts)
 				}
-				return client.ForkliftV1beta1().OpenstackVolumePopulators(namespace).List(context.TODO(), options)
+				return client.ForkliftV1beta1().OpenstackVolumePopulators(namespace).List(context.Background(), opts)
 			},
-			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
+			WatchFunc: func(opts v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
-					tweakListOptions(&options)
+					tweakListOptions(&opts)
 				}
-				return client.ForkliftV1beta1().OpenstackVolumePopulators(namespace).Watch(context.TODO(), options)
+				return client.ForkliftV1beta1().OpenstackVolumePopulators(namespace).Watch(context.Background(), opts)
 			},
+			ListWithContextFunc: func(ctx context.Context, opts v1.ListOptions) (runtime.Object, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&opts)
+				}
+				return client.ForkliftV1beta1().OpenstackVolumePopulators(namespace).List(ctx, opts)
+			},
+			WatchFuncWithContext: func(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&opts)
+				}
+				return client.ForkliftV1beta1().OpenstackVolumePopulators(namespace).Watch(ctx, opts)
+			},
+		}, client),
+		&apisforkliftv1beta1.OpenstackVolumePopulator{},
+		cache.SharedIndexInformerOptions{
+			ResyncPeriod: options.ResyncPeriod,
+			Indexers:     options.Indexers,
+			Identifier:   identifier,
 		},
-		&forkliftv1beta1.OpenstackVolumePopulator{},
-		resyncPeriod,
-		indexers,
 	)
 }
 
 func (f *openstackVolumePopulatorInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewFilteredOpenstackVolumePopulatorInformer(client, f.namespace, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
+	return NewOpenstackVolumePopulatorInformerWithOptions(client, f.namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, InformerName: f.factory.InformerName(), TweakListOptions: f.tweakListOptions})
 }
 
 func (f *openstackVolumePopulatorInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&forkliftv1beta1.OpenstackVolumePopulator{}, f.defaultInformer)
+	return f.factory.InformerFor(&apisforkliftv1beta1.OpenstackVolumePopulator{}, f.defaultInformer)
 }
 
-func (f *openstackVolumePopulatorInformer) Lister() v1beta1.OpenstackVolumePopulatorLister {
-	return v1beta1.NewOpenstackVolumePopulatorLister(f.Informer().GetIndexer())
+func (f *openstackVolumePopulatorInformer) Lister() forkliftv1beta1.OpenstackVolumePopulatorLister {
+	return forkliftv1beta1.NewOpenstackVolumePopulatorLister(f.Informer().GetIndexer())
 }

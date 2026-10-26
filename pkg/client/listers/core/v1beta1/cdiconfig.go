@@ -19,10 +19,10 @@ limitations under the License.
 package v1beta1
 
 import (
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/client-go/listers"
-	"k8s.io/client-go/tools/cache"
-	v1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1beta1"
+	labels "k8s.io/apimachinery/pkg/labels"
+	listers "k8s.io/client-go/listers"
+	cache "k8s.io/client-go/tools/cache"
+	corev1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1beta1"
 )
 
 // CDIConfigLister helps list CDIConfigs.
@@ -30,19 +30,19 @@ import (
 type CDIConfigLister interface {
 	// List lists all CDIConfigs in the indexer.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.CDIConfig, err error)
+	List(selector labels.Selector) (ret []*corev1beta1.CDIConfig, err error)
 	// Get retrieves the CDIConfig from the index for a given name.
 	// Objects returned here must be treated as read-only.
-	Get(name string) (*v1beta1.CDIConfig, error)
+	Get(name string) (*corev1beta1.CDIConfig, error)
 	CDIConfigListerExpansion
 }
 
 // cDIConfigLister implements the CDIConfigLister interface.
 type cDIConfigLister struct {
-	listers.ResourceIndexer[*v1beta1.CDIConfig]
+	listers.ResourceIndexer[*corev1beta1.CDIConfig]
 }
 
 // NewCDIConfigLister returns a new CDIConfigLister.
 func NewCDIConfigLister(indexer cache.Indexer) CDIConfigLister {
-	return &cDIConfigLister{listers.New[*v1beta1.CDIConfig](indexer, v1beta1.Resource("cdiconfig"))}
+	return &cDIConfigLister{listers.New[*corev1beta1.CDIConfig](indexer, corev1beta1.Resource("cdiconfig"))}
 }

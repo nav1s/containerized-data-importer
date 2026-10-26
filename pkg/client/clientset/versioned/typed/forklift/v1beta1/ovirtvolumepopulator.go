@@ -19,13 +19,13 @@ limitations under the License.
 package v1beta1
 
 import (
-	"context"
+	context "context"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	gentype "k8s.io/client-go/gentype"
-	v1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/forklift/v1beta1"
+	forkliftv1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/forklift/v1beta1"
 	scheme "kubevirt.io/containerized-data-importer/pkg/client/clientset/versioned/scheme"
 )
 
@@ -37,33 +37,34 @@ type OvirtVolumePopulatorsGetter interface {
 
 // OvirtVolumePopulatorInterface has methods to work with OvirtVolumePopulator resources.
 type OvirtVolumePopulatorInterface interface {
-	Create(ctx context.Context, ovirtVolumePopulator *v1beta1.OvirtVolumePopulator, opts v1.CreateOptions) (*v1beta1.OvirtVolumePopulator, error)
-	Update(ctx context.Context, ovirtVolumePopulator *v1beta1.OvirtVolumePopulator, opts v1.UpdateOptions) (*v1beta1.OvirtVolumePopulator, error)
+	Create(ctx context.Context, ovirtVolumePopulator *forkliftv1beta1.OvirtVolumePopulator, opts v1.CreateOptions) (*forkliftv1beta1.OvirtVolumePopulator, error)
+	Update(ctx context.Context, ovirtVolumePopulator *forkliftv1beta1.OvirtVolumePopulator, opts v1.UpdateOptions) (*forkliftv1beta1.OvirtVolumePopulator, error)
 	// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-	UpdateStatus(ctx context.Context, ovirtVolumePopulator *v1beta1.OvirtVolumePopulator, opts v1.UpdateOptions) (*v1beta1.OvirtVolumePopulator, error)
+	UpdateStatus(ctx context.Context, ovirtVolumePopulator *forkliftv1beta1.OvirtVolumePopulator, opts v1.UpdateOptions) (*forkliftv1beta1.OvirtVolumePopulator, error)
 	Delete(ctx context.Context, name string, opts v1.DeleteOptions) error
 	DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error
-	Get(ctx context.Context, name string, opts v1.GetOptions) (*v1beta1.OvirtVolumePopulator, error)
-	List(ctx context.Context, opts v1.ListOptions) (*v1beta1.OvirtVolumePopulatorList, error)
+	Get(ctx context.Context, name string, opts v1.GetOptions) (*forkliftv1beta1.OvirtVolumePopulator, error)
+	List(ctx context.Context, opts v1.ListOptions) (*forkliftv1beta1.OvirtVolumePopulatorList, error)
 	Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error)
-	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.OvirtVolumePopulator, err error)
+	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *forkliftv1beta1.OvirtVolumePopulator, err error)
 	OvirtVolumePopulatorExpansion
 }
 
 // ovirtVolumePopulators implements OvirtVolumePopulatorInterface
 type ovirtVolumePopulators struct {
-	*gentype.ClientWithList[*v1beta1.OvirtVolumePopulator, *v1beta1.OvirtVolumePopulatorList]
+	*gentype.ClientWithList[*forkliftv1beta1.OvirtVolumePopulator, *forkliftv1beta1.OvirtVolumePopulatorList]
 }
 
 // newOvirtVolumePopulators returns a OvirtVolumePopulators
 func newOvirtVolumePopulators(c *ForkliftV1beta1Client, namespace string) *ovirtVolumePopulators {
 	return &ovirtVolumePopulators{
-		gentype.NewClientWithList[*v1beta1.OvirtVolumePopulator, *v1beta1.OvirtVolumePopulatorList](
+		gentype.NewClientWithList[*forkliftv1beta1.OvirtVolumePopulator, *forkliftv1beta1.OvirtVolumePopulatorList](
 			"ovirtvolumepopulators",
 			c.RESTClient(),
 			scheme.ParameterCodec,
 			namespace,
-			func() *v1beta1.OvirtVolumePopulator { return &v1beta1.OvirtVolumePopulator{} },
-			func() *v1beta1.OvirtVolumePopulatorList { return &v1beta1.OvirtVolumePopulatorList{} }),
+			func() *forkliftv1beta1.OvirtVolumePopulator { return &forkliftv1beta1.OvirtVolumePopulator{} },
+			func() *forkliftv1beta1.OvirtVolumePopulatorList { return &forkliftv1beta1.OvirtVolumePopulatorList{} },
+		),
 	}
 }

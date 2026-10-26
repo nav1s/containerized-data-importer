@@ -19,10 +19,10 @@ limitations under the License.
 package v1beta1
 
 import (
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/client-go/listers"
-	"k8s.io/client-go/tools/cache"
-	v1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/forklift/v1beta1"
+	labels "k8s.io/apimachinery/pkg/labels"
+	listers "k8s.io/client-go/listers"
+	cache "k8s.io/client-go/tools/cache"
+	forkliftv1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/forklift/v1beta1"
 )
 
 // OpenstackVolumePopulatorLister helps list OpenstackVolumePopulators.
@@ -30,7 +30,7 @@ import (
 type OpenstackVolumePopulatorLister interface {
 	// List lists all OpenstackVolumePopulators in the indexer.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.OpenstackVolumePopulator, err error)
+	List(selector labels.Selector) (ret []*forkliftv1beta1.OpenstackVolumePopulator, err error)
 	// OpenstackVolumePopulators returns an object that can list and get OpenstackVolumePopulators.
 	OpenstackVolumePopulators(namespace string) OpenstackVolumePopulatorNamespaceLister
 	OpenstackVolumePopulatorListerExpansion
@@ -38,17 +38,17 @@ type OpenstackVolumePopulatorLister interface {
 
 // openstackVolumePopulatorLister implements the OpenstackVolumePopulatorLister interface.
 type openstackVolumePopulatorLister struct {
-	listers.ResourceIndexer[*v1beta1.OpenstackVolumePopulator]
+	listers.ResourceIndexer[*forkliftv1beta1.OpenstackVolumePopulator]
 }
 
 // NewOpenstackVolumePopulatorLister returns a new OpenstackVolumePopulatorLister.
 func NewOpenstackVolumePopulatorLister(indexer cache.Indexer) OpenstackVolumePopulatorLister {
-	return &openstackVolumePopulatorLister{listers.New[*v1beta1.OpenstackVolumePopulator](indexer, v1beta1.Resource("openstackvolumepopulator"))}
+	return &openstackVolumePopulatorLister{listers.New[*forkliftv1beta1.OpenstackVolumePopulator](indexer, forkliftv1beta1.Resource("openstackvolumepopulator"))}
 }
 
 // OpenstackVolumePopulators returns an object that can list and get OpenstackVolumePopulators.
 func (s *openstackVolumePopulatorLister) OpenstackVolumePopulators(namespace string) OpenstackVolumePopulatorNamespaceLister {
-	return openstackVolumePopulatorNamespaceLister{listers.NewNamespaced[*v1beta1.OpenstackVolumePopulator](s.ResourceIndexer, namespace)}
+	return openstackVolumePopulatorNamespaceLister{listers.NewNamespaced[*forkliftv1beta1.OpenstackVolumePopulator](s.ResourceIndexer, namespace)}
 }
 
 // OpenstackVolumePopulatorNamespaceLister helps list and get OpenstackVolumePopulators.
@@ -56,15 +56,15 @@ func (s *openstackVolumePopulatorLister) OpenstackVolumePopulators(namespace str
 type OpenstackVolumePopulatorNamespaceLister interface {
 	// List lists all OpenstackVolumePopulators in the indexer for a given namespace.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.OpenstackVolumePopulator, err error)
+	List(selector labels.Selector) (ret []*forkliftv1beta1.OpenstackVolumePopulator, err error)
 	// Get retrieves the OpenstackVolumePopulator from the indexer for a given namespace and name.
 	// Objects returned here must be treated as read-only.
-	Get(name string) (*v1beta1.OpenstackVolumePopulator, error)
+	Get(name string) (*forkliftv1beta1.OpenstackVolumePopulator, error)
 	OpenstackVolumePopulatorNamespaceListerExpansion
 }
 
 // openstackVolumePopulatorNamespaceLister implements the OpenstackVolumePopulatorNamespaceLister
 // interface.
 type openstackVolumePopulatorNamespaceLister struct {
-	listers.ResourceIndexer[*v1beta1.OpenstackVolumePopulator]
+	listers.ResourceIndexer[*forkliftv1beta1.OpenstackVolumePopulator]
 }

@@ -19,24 +19,25 @@ limitations under the License.
 package v1beta1
 
 import (
-	"context"
+	context "context"
 	time "time"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
+	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	watch "k8s.io/apimachinery/pkg/watch"
 	cache "k8s.io/client-go/tools/cache"
-	corev1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1beta1"
+	apiscorev1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1beta1"
 	versioned "kubevirt.io/containerized-data-importer/pkg/client/clientset/versioned"
 	internalinterfaces "kubevirt.io/containerized-data-importer/pkg/client/informers/externalversions/internalinterfaces"
-	v1beta1 "kubevirt.io/containerized-data-importer/pkg/client/listers/core/v1beta1"
+	corev1beta1 "kubevirt.io/containerized-data-importer/pkg/client/listers/core/v1beta1"
 )
 
 // CDIInformer provides access to a shared informer and lister for
 // CDIs.
 type CDIInformer interface {
 	Informer() cache.SharedIndexInformer
-	Lister() v1beta1.CDILister
+	Lister() corev1beta1.CDILister
 }
 
 type cDIInformer struct {
@@ -48,42 +49,67 @@ type cDIInformer struct {
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
 func NewCDIInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewFilteredCDIInformer(client, resyncPeriod, indexers, nil)
+	return NewCDIInformerWithOptions(client, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers})
 }
 
 // NewFilteredCDIInformer constructs a new informer for CDI type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
 func NewFilteredCDIInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
-	return cache.NewSharedIndexInformer(
-		&cache.ListWatch{
-			ListFunc: func(options v1.ListOptions) (runtime.Object, error) {
+	return NewCDIInformerWithOptions(client, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers, TweakListOptions: tweakListOptions})
+}
+
+// NewCDIInformerWithOptions constructs a new informer for CDI type with additional options.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewCDIInformerWithOptions(client versioned.Interface, options internalinterfaces.InformerOptions) cache.SharedIndexInformer {
+	gvr := schema.GroupVersionResource{Group: "cdi.kubevirt.io", Version: "v1beta1", Resource: "cdis"}
+	identifier := options.InformerName.WithResource(gvr)
+	tweakListOptions := options.TweakListOptions
+	return cache.NewSharedIndexInformerWithOptions(
+		cache.ToListWatcherWithWatchListSemantics(&cache.ListWatch{
+			ListFunc: func(opts v1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
-					tweakListOptions(&options)
+					tweakListOptions(&opts)
 				}
-				return client.CdiV1beta1().CDIs().List(context.TODO(), options)
+				return client.CdiV1beta1().CDIs().List(context.Background(), opts)
 			},
-			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
+			WatchFunc: func(opts v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
-					tweakListOptions(&options)
+					tweakListOptions(&opts)
 				}
-				return client.CdiV1beta1().CDIs().Watch(context.TODO(), options)
+				return client.CdiV1beta1().CDIs().Watch(context.Background(), opts)
 			},
+			ListWithContextFunc: func(ctx context.Context, opts v1.ListOptions) (runtime.Object, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&opts)
+				}
+				return client.CdiV1beta1().CDIs().List(ctx, opts)
+			},
+			WatchFuncWithContext: func(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&opts)
+				}
+				return client.CdiV1beta1().CDIs().Watch(ctx, opts)
+			},
+		}, client),
+		&apiscorev1beta1.CDI{},
+		cache.SharedIndexInformerOptions{
+			ResyncPeriod: options.ResyncPeriod,
+			Indexers:     options.Indexers,
+			Identifier:   identifier,
 		},
-		&corev1beta1.CDI{},
-		resyncPeriod,
-		indexers,
 	)
 }
 
 func (f *cDIInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewFilteredCDIInformer(client, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
+	return NewCDIInformerWithOptions(client, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, InformerName: f.factory.InformerName(), TweakListOptions: f.tweakListOptions})
 }
 
 func (f *cDIInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&corev1beta1.CDI{}, f.defaultInformer)
+	return f.factory.InformerFor(&apiscorev1beta1.CDI{}, f.defaultInformer)
 }
 
-func (f *cDIInformer) Lister() v1beta1.CDILister {
-	return v1beta1.NewCDILister(f.Informer().GetIndexer())
+func (f *cDIInformer) Lister() corev1beta1.CDILister {
+	return corev1beta1.NewCDILister(f.Informer().GetIndexer())
 }

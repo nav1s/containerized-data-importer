@@ -19,13 +19,13 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"context"
+	context "context"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	gentype "k8s.io/client-go/gentype"
-	v1alpha1 "kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1alpha1"
+	corev1alpha1 "kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1alpha1"
 	scheme "kubevirt.io/containerized-data-importer/pkg/client/clientset/versioned/scheme"
 )
 
@@ -37,33 +37,34 @@ type CDIsGetter interface {
 
 // CDIInterface has methods to work with CDI resources.
 type CDIInterface interface {
-	Create(ctx context.Context, cDI *v1alpha1.CDI, opts v1.CreateOptions) (*v1alpha1.CDI, error)
-	Update(ctx context.Context, cDI *v1alpha1.CDI, opts v1.UpdateOptions) (*v1alpha1.CDI, error)
+	Create(ctx context.Context, cDI *corev1alpha1.CDI, opts v1.CreateOptions) (*corev1alpha1.CDI, error)
+	Update(ctx context.Context, cDI *corev1alpha1.CDI, opts v1.UpdateOptions) (*corev1alpha1.CDI, error)
 	// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-	UpdateStatus(ctx context.Context, cDI *v1alpha1.CDI, opts v1.UpdateOptions) (*v1alpha1.CDI, error)
+	UpdateStatus(ctx context.Context, cDI *corev1alpha1.CDI, opts v1.UpdateOptions) (*corev1alpha1.CDI, error)
 	Delete(ctx context.Context, name string, opts v1.DeleteOptions) error
 	DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error
-	Get(ctx context.Context, name string, opts v1.GetOptions) (*v1alpha1.CDI, error)
-	List(ctx context.Context, opts v1.ListOptions) (*v1alpha1.CDIList, error)
+	Get(ctx context.Context, name string, opts v1.GetOptions) (*corev1alpha1.CDI, error)
+	List(ctx context.Context, opts v1.ListOptions) (*corev1alpha1.CDIList, error)
 	Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error)
-	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1alpha1.CDI, err error)
+	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *corev1alpha1.CDI, err error)
 	CDIExpansion
 }
 
 // cDIs implements CDIInterface
 type cDIs struct {
-	*gentype.ClientWithList[*v1alpha1.CDI, *v1alpha1.CDIList]
+	*gentype.ClientWithList[*corev1alpha1.CDI, *corev1alpha1.CDIList]
 }
 
 // newCDIs returns a CDIs
 func newCDIs(c *CdiV1alpha1Client) *cDIs {
 	return &cDIs{
-		gentype.NewClientWithList[*v1alpha1.CDI, *v1alpha1.CDIList](
+		gentype.NewClientWithList[*corev1alpha1.CDI, *corev1alpha1.CDIList](
 			"cdis",
 			c.RESTClient(),
 			scheme.ParameterCodec,
 			"",
-			func() *v1alpha1.CDI { return &v1alpha1.CDI{} },
-			func() *v1alpha1.CDIList { return &v1alpha1.CDIList{} }),
+			func() *corev1alpha1.CDI { return &corev1alpha1.CDI{} },
+			func() *corev1alpha1.CDIList { return &corev1alpha1.CDIList{} },
+		),
 	}
 }

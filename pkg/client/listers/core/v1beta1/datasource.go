@@ -19,10 +19,10 @@ limitations under the License.
 package v1beta1
 
 import (
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/client-go/listers"
-	"k8s.io/client-go/tools/cache"
-	v1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1beta1"
+	labels "k8s.io/apimachinery/pkg/labels"
+	listers "k8s.io/client-go/listers"
+	cache "k8s.io/client-go/tools/cache"
+	corev1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1beta1"
 )
 
 // DataSourceLister helps list DataSources.
@@ -30,7 +30,7 @@ import (
 type DataSourceLister interface {
 	// List lists all DataSources in the indexer.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.DataSource, err error)
+	List(selector labels.Selector) (ret []*corev1beta1.DataSource, err error)
 	// DataSources returns an object that can list and get DataSources.
 	DataSources(namespace string) DataSourceNamespaceLister
 	DataSourceListerExpansion
@@ -38,17 +38,17 @@ type DataSourceLister interface {
 
 // dataSourceLister implements the DataSourceLister interface.
 type dataSourceLister struct {
-	listers.ResourceIndexer[*v1beta1.DataSource]
+	listers.ResourceIndexer[*corev1beta1.DataSource]
 }
 
 // NewDataSourceLister returns a new DataSourceLister.
 func NewDataSourceLister(indexer cache.Indexer) DataSourceLister {
-	return &dataSourceLister{listers.New[*v1beta1.DataSource](indexer, v1beta1.Resource("datasource"))}
+	return &dataSourceLister{listers.New[*corev1beta1.DataSource](indexer, corev1beta1.Resource("datasource"))}
 }
 
 // DataSources returns an object that can list and get DataSources.
 func (s *dataSourceLister) DataSources(namespace string) DataSourceNamespaceLister {
-	return dataSourceNamespaceLister{listers.NewNamespaced[*v1beta1.DataSource](s.ResourceIndexer, namespace)}
+	return dataSourceNamespaceLister{listers.NewNamespaced[*corev1beta1.DataSource](s.ResourceIndexer, namespace)}
 }
 
 // DataSourceNamespaceLister helps list and get DataSources.
@@ -56,15 +56,15 @@ func (s *dataSourceLister) DataSources(namespace string) DataSourceNamespaceList
 type DataSourceNamespaceLister interface {
 	// List lists all DataSources in the indexer for a given namespace.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.DataSource, err error)
+	List(selector labels.Selector) (ret []*corev1beta1.DataSource, err error)
 	// Get retrieves the DataSource from the indexer for a given namespace and name.
 	// Objects returned here must be treated as read-only.
-	Get(name string) (*v1beta1.DataSource, error)
+	Get(name string) (*corev1beta1.DataSource, error)
 	DataSourceNamespaceListerExpansion
 }
 
 // dataSourceNamespaceLister implements the DataSourceNamespaceLister
 // interface.
 type dataSourceNamespaceLister struct {
-	listers.ResourceIndexer[*v1beta1.DataSource]
+	listers.ResourceIndexer[*corev1beta1.DataSource]
 }

@@ -19,24 +19,25 @@ limitations under the License.
 package v1beta1
 
 import (
-	"context"
+	context "context"
 	time "time"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
+	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	watch "k8s.io/apimachinery/pkg/watch"
 	cache "k8s.io/client-go/tools/cache"
-	corev1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1beta1"
+	apiscorev1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1beta1"
 	versioned "kubevirt.io/containerized-data-importer/pkg/client/clientset/versioned"
 	internalinterfaces "kubevirt.io/containerized-data-importer/pkg/client/informers/externalversions/internalinterfaces"
-	v1beta1 "kubevirt.io/containerized-data-importer/pkg/client/listers/core/v1beta1"
+	corev1beta1 "kubevirt.io/containerized-data-importer/pkg/client/listers/core/v1beta1"
 )
 
 // ObjectTransferInformer provides access to a shared informer and lister for
 // ObjectTransfers.
 type ObjectTransferInformer interface {
 	Informer() cache.SharedIndexInformer
-	Lister() v1beta1.ObjectTransferLister
+	Lister() corev1beta1.ObjectTransferLister
 }
 
 type objectTransferInformer struct {
@@ -48,42 +49,67 @@ type objectTransferInformer struct {
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
 func NewObjectTransferInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewFilteredObjectTransferInformer(client, resyncPeriod, indexers, nil)
+	return NewObjectTransferInformerWithOptions(client, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers})
 }
 
 // NewFilteredObjectTransferInformer constructs a new informer for ObjectTransfer type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
 func NewFilteredObjectTransferInformer(client versioned.Interface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
-	return cache.NewSharedIndexInformer(
-		&cache.ListWatch{
-			ListFunc: func(options v1.ListOptions) (runtime.Object, error) {
+	return NewObjectTransferInformerWithOptions(client, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers, TweakListOptions: tweakListOptions})
+}
+
+// NewObjectTransferInformerWithOptions constructs a new informer for ObjectTransfer type with additional options.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewObjectTransferInformerWithOptions(client versioned.Interface, options internalinterfaces.InformerOptions) cache.SharedIndexInformer {
+	gvr := schema.GroupVersionResource{Group: "cdi.kubevirt.io", Version: "v1beta1", Resource: "objecttransfers"}
+	identifier := options.InformerName.WithResource(gvr)
+	tweakListOptions := options.TweakListOptions
+	return cache.NewSharedIndexInformerWithOptions(
+		cache.ToListWatcherWithWatchListSemantics(&cache.ListWatch{
+			ListFunc: func(opts v1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
-					tweakListOptions(&options)
+					tweakListOptions(&opts)
 				}
-				return client.CdiV1beta1().ObjectTransfers().List(context.TODO(), options)
+				return client.CdiV1beta1().ObjectTransfers().List(context.Background(), opts)
 			},
-			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
+			WatchFunc: func(opts v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
-					tweakListOptions(&options)
+					tweakListOptions(&opts)
 				}
-				return client.CdiV1beta1().ObjectTransfers().Watch(context.TODO(), options)
+				return client.CdiV1beta1().ObjectTransfers().Watch(context.Background(), opts)
 			},
+			ListWithContextFunc: func(ctx context.Context, opts v1.ListOptions) (runtime.Object, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&opts)
+				}
+				return client.CdiV1beta1().ObjectTransfers().List(ctx, opts)
+			},
+			WatchFuncWithContext: func(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&opts)
+				}
+				return client.CdiV1beta1().ObjectTransfers().Watch(ctx, opts)
+			},
+		}, client),
+		&apiscorev1beta1.ObjectTransfer{},
+		cache.SharedIndexInformerOptions{
+			ResyncPeriod: options.ResyncPeriod,
+			Indexers:     options.Indexers,
+			Identifier:   identifier,
 		},
-		&corev1beta1.ObjectTransfer{},
-		resyncPeriod,
-		indexers,
 	)
 }
 
 func (f *objectTransferInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewFilteredObjectTransferInformer(client, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
+	return NewObjectTransferInformerWithOptions(client, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, InformerName: f.factory.InformerName(), TweakListOptions: f.tweakListOptions})
 }
 
 func (f *objectTransferInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&corev1beta1.ObjectTransfer{}, f.defaultInformer)
+	return f.factory.InformerFor(&apiscorev1beta1.ObjectTransfer{}, f.defaultInformer)
 }
 
-func (f *objectTransferInformer) Lister() v1beta1.ObjectTransferLister {
-	return v1beta1.NewObjectTransferLister(f.Informer().GetIndexer())
+func (f *objectTransferInformer) Lister() corev1beta1.ObjectTransferLister {
+	return corev1beta1.NewObjectTransferLister(f.Informer().GetIndexer())
 }

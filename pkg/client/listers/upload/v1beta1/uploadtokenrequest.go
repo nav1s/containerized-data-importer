@@ -19,10 +19,10 @@ limitations under the License.
 package v1beta1
 
 import (
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/client-go/listers"
-	"k8s.io/client-go/tools/cache"
-	v1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/upload/v1beta1"
+	labels "k8s.io/apimachinery/pkg/labels"
+	listers "k8s.io/client-go/listers"
+	cache "k8s.io/client-go/tools/cache"
+	uploadv1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/upload/v1beta1"
 )
 
 // UploadTokenRequestLister helps list UploadTokenRequests.
@@ -30,7 +30,7 @@ import (
 type UploadTokenRequestLister interface {
 	// List lists all UploadTokenRequests in the indexer.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.UploadTokenRequest, err error)
+	List(selector labels.Selector) (ret []*uploadv1beta1.UploadTokenRequest, err error)
 	// UploadTokenRequests returns an object that can list and get UploadTokenRequests.
 	UploadTokenRequests(namespace string) UploadTokenRequestNamespaceLister
 	UploadTokenRequestListerExpansion
@@ -38,17 +38,17 @@ type UploadTokenRequestLister interface {
 
 // uploadTokenRequestLister implements the UploadTokenRequestLister interface.
 type uploadTokenRequestLister struct {
-	listers.ResourceIndexer[*v1beta1.UploadTokenRequest]
+	listers.ResourceIndexer[*uploadv1beta1.UploadTokenRequest]
 }
 
 // NewUploadTokenRequestLister returns a new UploadTokenRequestLister.
 func NewUploadTokenRequestLister(indexer cache.Indexer) UploadTokenRequestLister {
-	return &uploadTokenRequestLister{listers.New[*v1beta1.UploadTokenRequest](indexer, v1beta1.Resource("uploadtokenrequest"))}
+	return &uploadTokenRequestLister{listers.New[*uploadv1beta1.UploadTokenRequest](indexer, uploadv1beta1.Resource("uploadtokenrequest"))}
 }
 
 // UploadTokenRequests returns an object that can list and get UploadTokenRequests.
 func (s *uploadTokenRequestLister) UploadTokenRequests(namespace string) UploadTokenRequestNamespaceLister {
-	return uploadTokenRequestNamespaceLister{listers.NewNamespaced[*v1beta1.UploadTokenRequest](s.ResourceIndexer, namespace)}
+	return uploadTokenRequestNamespaceLister{listers.NewNamespaced[*uploadv1beta1.UploadTokenRequest](s.ResourceIndexer, namespace)}
 }
 
 // UploadTokenRequestNamespaceLister helps list and get UploadTokenRequests.
@@ -56,15 +56,15 @@ func (s *uploadTokenRequestLister) UploadTokenRequests(namespace string) UploadT
 type UploadTokenRequestNamespaceLister interface {
 	// List lists all UploadTokenRequests in the indexer for a given namespace.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.UploadTokenRequest, err error)
+	List(selector labels.Selector) (ret []*uploadv1beta1.UploadTokenRequest, err error)
 	// Get retrieves the UploadTokenRequest from the indexer for a given namespace and name.
 	// Objects returned here must be treated as read-only.
-	Get(name string) (*v1beta1.UploadTokenRequest, error)
+	Get(name string) (*uploadv1beta1.UploadTokenRequest, error)
 	UploadTokenRequestNamespaceListerExpansion
 }
 
 // uploadTokenRequestNamespaceLister implements the UploadTokenRequestNamespaceLister
 // interface.
 type uploadTokenRequestNamespaceLister struct {
-	listers.ResourceIndexer[*v1beta1.UploadTokenRequest]
+	listers.ResourceIndexer[*uploadv1beta1.UploadTokenRequest]
 }

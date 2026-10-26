@@ -29,11 +29,11 @@ type FakeForkliftV1beta1 struct {
 }
 
 func (c *FakeForkliftV1beta1) OpenstackVolumePopulators(namespace string) v1beta1.OpenstackVolumePopulatorInterface {
-	return &FakeOpenstackVolumePopulators{c, namespace}
+	return newFakeOpenstackVolumePopulators(c, namespace)
 }
 
 func (c *FakeForkliftV1beta1) OvirtVolumePopulators(namespace string) v1beta1.OvirtVolumePopulatorInterface {
-	return &FakeOvirtVolumePopulators{c, namespace}
+	return newFakeOvirtVolumePopulators(c, namespace)
 }
 
 // RESTClient returns a RESTClient that is used to communicate

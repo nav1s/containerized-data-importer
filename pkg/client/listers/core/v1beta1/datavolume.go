@@ -19,10 +19,10 @@ limitations under the License.
 package v1beta1
 
 import (
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/client-go/listers"
-	"k8s.io/client-go/tools/cache"
-	v1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1beta1"
+	labels "k8s.io/apimachinery/pkg/labels"
+	listers "k8s.io/client-go/listers"
+	cache "k8s.io/client-go/tools/cache"
+	corev1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1beta1"
 )
 
 // DataVolumeLister helps list DataVolumes.
@@ -30,7 +30,7 @@ import (
 type DataVolumeLister interface {
 	// List lists all DataVolumes in the indexer.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.DataVolume, err error)
+	List(selector labels.Selector) (ret []*corev1beta1.DataVolume, err error)
 	// DataVolumes returns an object that can list and get DataVolumes.
 	DataVolumes(namespace string) DataVolumeNamespaceLister
 	DataVolumeListerExpansion
@@ -38,17 +38,17 @@ type DataVolumeLister interface {
 
 // dataVolumeLister implements the DataVolumeLister interface.
 type dataVolumeLister struct {
-	listers.ResourceIndexer[*v1beta1.DataVolume]
+	listers.ResourceIndexer[*corev1beta1.DataVolume]
 }
 
 // NewDataVolumeLister returns a new DataVolumeLister.
 func NewDataVolumeLister(indexer cache.Indexer) DataVolumeLister {
-	return &dataVolumeLister{listers.New[*v1beta1.DataVolume](indexer, v1beta1.Resource("datavolume"))}
+	return &dataVolumeLister{listers.New[*corev1beta1.DataVolume](indexer, corev1beta1.Resource("datavolume"))}
 }
 
 // DataVolumes returns an object that can list and get DataVolumes.
 func (s *dataVolumeLister) DataVolumes(namespace string) DataVolumeNamespaceLister {
-	return dataVolumeNamespaceLister{listers.NewNamespaced[*v1beta1.DataVolume](s.ResourceIndexer, namespace)}
+	return dataVolumeNamespaceLister{listers.NewNamespaced[*corev1beta1.DataVolume](s.ResourceIndexer, namespace)}
 }
 
 // DataVolumeNamespaceLister helps list and get DataVolumes.
@@ -56,15 +56,15 @@ func (s *dataVolumeLister) DataVolumes(namespace string) DataVolumeNamespaceList
 type DataVolumeNamespaceLister interface {
 	// List lists all DataVolumes in the indexer for a given namespace.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.DataVolume, err error)
+	List(selector labels.Selector) (ret []*corev1beta1.DataVolume, err error)
 	// Get retrieves the DataVolume from the indexer for a given namespace and name.
 	// Objects returned here must be treated as read-only.
-	Get(name string) (*v1beta1.DataVolume, error)
+	Get(name string) (*corev1beta1.DataVolume, error)
 	DataVolumeNamespaceListerExpansion
 }
 
 // dataVolumeNamespaceLister implements the DataVolumeNamespaceLister
 // interface.
 type dataVolumeNamespaceLister struct {
-	listers.ResourceIndexer[*v1beta1.DataVolume]
+	listers.ResourceIndexer[*corev1beta1.DataVolume]
 }

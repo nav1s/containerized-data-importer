@@ -29,7 +29,7 @@ type FakeCdiV1alpha1 struct {
 }
 
 func (c *FakeCdiV1alpha1) CDIs() v1alpha1.CDIInterface {
-	return &FakeCDIs{c}
+	return newFakeCDIs(c)
 }
 
 // RESTClient returns a RESTClient that is used to communicate

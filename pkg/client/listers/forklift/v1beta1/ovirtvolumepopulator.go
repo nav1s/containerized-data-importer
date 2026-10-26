@@ -19,10 +19,10 @@ limitations under the License.
 package v1beta1
 
 import (
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/client-go/listers"
-	"k8s.io/client-go/tools/cache"
-	v1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/forklift/v1beta1"
+	labels "k8s.io/apimachinery/pkg/labels"
+	listers "k8s.io/client-go/listers"
+	cache "k8s.io/client-go/tools/cache"
+	forkliftv1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/forklift/v1beta1"
 )
 
 // OvirtVolumePopulatorLister helps list OvirtVolumePopulators.
@@ -30,7 +30,7 @@ import (
 type OvirtVolumePopulatorLister interface {
 	// List lists all OvirtVolumePopulators in the indexer.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.OvirtVolumePopulator, err error)
+	List(selector labels.Selector) (ret []*forkliftv1beta1.OvirtVolumePopulator, err error)
 	// OvirtVolumePopulators returns an object that can list and get OvirtVolumePopulators.
 	OvirtVolumePopulators(namespace string) OvirtVolumePopulatorNamespaceLister
 	OvirtVolumePopulatorListerExpansion
@@ -38,17 +38,17 @@ type OvirtVolumePopulatorLister interface {
 
 // ovirtVolumePopulatorLister implements the OvirtVolumePopulatorLister interface.
 type ovirtVolumePopulatorLister struct {
-	listers.ResourceIndexer[*v1beta1.OvirtVolumePopulator]
+	listers.ResourceIndexer[*forkliftv1beta1.OvirtVolumePopulator]
 }
 
 // NewOvirtVolumePopulatorLister returns a new OvirtVolumePopulatorLister.
 func NewOvirtVolumePopulatorLister(indexer cache.Indexer) OvirtVolumePopulatorLister {
-	return &ovirtVolumePopulatorLister{listers.New[*v1beta1.OvirtVolumePopulator](indexer, v1beta1.Resource("ovirtvolumepopulator"))}
+	return &ovirtVolumePopulatorLister{listers.New[*forkliftv1beta1.OvirtVolumePopulator](indexer, forkliftv1beta1.Resource("ovirtvolumepopulator"))}
 }
 
 // OvirtVolumePopulators returns an object that can list and get OvirtVolumePopulators.
 func (s *ovirtVolumePopulatorLister) OvirtVolumePopulators(namespace string) OvirtVolumePopulatorNamespaceLister {
-	return ovirtVolumePopulatorNamespaceLister{listers.NewNamespaced[*v1beta1.OvirtVolumePopulator](s.ResourceIndexer, namespace)}
+	return ovirtVolumePopulatorNamespaceLister{listers.NewNamespaced[*forkliftv1beta1.OvirtVolumePopulator](s.ResourceIndexer, namespace)}
 }
 
 // OvirtVolumePopulatorNamespaceLister helps list and get OvirtVolumePopulators.
@@ -56,15 +56,15 @@ func (s *ovirtVolumePopulatorLister) OvirtVolumePopulators(namespace string) Ovi
 type OvirtVolumePopulatorNamespaceLister interface {
 	// List lists all OvirtVolumePopulators in the indexer for a given namespace.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.OvirtVolumePopulator, err error)
+	List(selector labels.Selector) (ret []*forkliftv1beta1.OvirtVolumePopulator, err error)
 	// Get retrieves the OvirtVolumePopulator from the indexer for a given namespace and name.
 	// Objects returned here must be treated as read-only.
-	Get(name string) (*v1beta1.OvirtVolumePopulator, error)
+	Get(name string) (*forkliftv1beta1.OvirtVolumePopulator, error)
 	OvirtVolumePopulatorNamespaceListerExpansion
 }
 
 // ovirtVolumePopulatorNamespaceLister implements the OvirtVolumePopulatorNamespaceLister
 // interface.
 type ovirtVolumePopulatorNamespaceLister struct {
-	listers.ResourceIndexer[*v1beta1.OvirtVolumePopulator]
+	listers.ResourceIndexer[*forkliftv1beta1.OvirtVolumePopulator]
 }

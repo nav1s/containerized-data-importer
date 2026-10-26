@@ -19,24 +19,25 @@ limitations under the License.
 package v1beta1
 
 import (
-	"context"
+	context "context"
 	time "time"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
+	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	watch "k8s.io/apimachinery/pkg/watch"
 	cache "k8s.io/client-go/tools/cache"
-	corev1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1beta1"
+	apiscorev1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1beta1"
 	versioned "kubevirt.io/containerized-data-importer/pkg/client/clientset/versioned"
 	internalinterfaces "kubevirt.io/containerized-data-importer/pkg/client/informers/externalversions/internalinterfaces"
-	v1beta1 "kubevirt.io/containerized-data-importer/pkg/client/listers/core/v1beta1"
+	corev1beta1 "kubevirt.io/containerized-data-importer/pkg/client/listers/core/v1beta1"
 )
 
 // VolumeImportSourceInformer provides access to a shared informer and lister for
 // VolumeImportSources.
 type VolumeImportSourceInformer interface {
 	Informer() cache.SharedIndexInformer
-	Lister() v1beta1.VolumeImportSourceLister
+	Lister() corev1beta1.VolumeImportSourceLister
 }
 
 type volumeImportSourceInformer struct {
@@ -49,42 +50,67 @@ type volumeImportSourceInformer struct {
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
 func NewVolumeImportSourceInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
-	return NewFilteredVolumeImportSourceInformer(client, namespace, resyncPeriod, indexers, nil)
+	return NewVolumeImportSourceInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers})
 }
 
 // NewFilteredVolumeImportSourceInformer constructs a new informer for VolumeImportSource type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
 func NewFilteredVolumeImportSourceInformer(client versioned.Interface, namespace string, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
-	return cache.NewSharedIndexInformer(
-		&cache.ListWatch{
-			ListFunc: func(options v1.ListOptions) (runtime.Object, error) {
+	return NewVolumeImportSourceInformerWithOptions(client, namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: indexers, TweakListOptions: tweakListOptions})
+}
+
+// NewVolumeImportSourceInformerWithOptions constructs a new informer for VolumeImportSource type with additional options.
+// Always prefer using an informer factory to get a shared informer instead of getting an independent
+// one. This reduces memory footprint and number of connections to the server.
+func NewVolumeImportSourceInformerWithOptions(client versioned.Interface, namespace string, options internalinterfaces.InformerOptions) cache.SharedIndexInformer {
+	gvr := schema.GroupVersionResource{Group: "cdi.kubevirt.io", Version: "v1beta1", Resource: "volumeimportsources"}
+	identifier := options.InformerName.WithResource(gvr)
+	tweakListOptions := options.TweakListOptions
+	return cache.NewSharedIndexInformerWithOptions(
+		cache.ToListWatcherWithWatchListSemantics(&cache.ListWatch{
+			ListFunc: func(opts v1.ListOptions) (runtime.Object, error) {
 				if tweakListOptions != nil {
-					tweakListOptions(&options)
+					tweakListOptions(&opts)
 				}
-				return client.CdiV1beta1().VolumeImportSources(namespace).List(context.TODO(), options)
+				return client.CdiV1beta1().VolumeImportSources(namespace).List(context.Background(), opts)
 			},
-			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
+			WatchFunc: func(opts v1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
-					tweakListOptions(&options)
+					tweakListOptions(&opts)
 				}
-				return client.CdiV1beta1().VolumeImportSources(namespace).Watch(context.TODO(), options)
+				return client.CdiV1beta1().VolumeImportSources(namespace).Watch(context.Background(), opts)
 			},
+			ListWithContextFunc: func(ctx context.Context, opts v1.ListOptions) (runtime.Object, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&opts)
+				}
+				return client.CdiV1beta1().VolumeImportSources(namespace).List(ctx, opts)
+			},
+			WatchFuncWithContext: func(ctx context.Context, opts v1.ListOptions) (watch.Interface, error) {
+				if tweakListOptions != nil {
+					tweakListOptions(&opts)
+				}
+				return client.CdiV1beta1().VolumeImportSources(namespace).Watch(ctx, opts)
+			},
+		}, client),
+		&apiscorev1beta1.VolumeImportSource{},
+		cache.SharedIndexInformerOptions{
+			ResyncPeriod: options.ResyncPeriod,
+			Indexers:     options.Indexers,
+			Identifier:   identifier,
 		},
-		&corev1beta1.VolumeImportSource{},
-		resyncPeriod,
-		indexers,
 	)
 }
 
 func (f *volumeImportSourceInformer) defaultInformer(client versioned.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-	return NewFilteredVolumeImportSourceInformer(client, f.namespace, resyncPeriod, cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, f.tweakListOptions)
+	return NewVolumeImportSourceInformerWithOptions(client, f.namespace, internalinterfaces.InformerOptions{ResyncPeriod: resyncPeriod, Indexers: cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, InformerName: f.factory.InformerName(), TweakListOptions: f.tweakListOptions})
 }
 
 func (f *volumeImportSourceInformer) Informer() cache.SharedIndexInformer {
-	return f.factory.InformerFor(&corev1beta1.VolumeImportSource{}, f.defaultInformer)
+	return f.factory.InformerFor(&apiscorev1beta1.VolumeImportSource{}, f.defaultInformer)
 }
 
-func (f *volumeImportSourceInformer) Lister() v1beta1.VolumeImportSourceLister {
-	return v1beta1.NewVolumeImportSourceLister(f.Informer().GetIndexer())
+func (f *volumeImportSourceInformer) Lister() corev1beta1.VolumeImportSourceLister {
+	return corev1beta1.NewVolumeImportSourceLister(f.Informer().GetIndexer())
 }

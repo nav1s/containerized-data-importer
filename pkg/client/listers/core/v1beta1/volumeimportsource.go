@@ -19,10 +19,10 @@ limitations under the License.
 package v1beta1
 
 import (
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/client-go/listers"
-	"k8s.io/client-go/tools/cache"
-	v1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1beta1"
+	labels "k8s.io/apimachinery/pkg/labels"
+	listers "k8s.io/client-go/listers"
+	cache "k8s.io/client-go/tools/cache"
+	corev1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1beta1"
 )
 
 // VolumeImportSourceLister helps list VolumeImportSources.
@@ -30,7 +30,7 @@ import (
 type VolumeImportSourceLister interface {
 	// List lists all VolumeImportSources in the indexer.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.VolumeImportSource, err error)
+	List(selector labels.Selector) (ret []*corev1beta1.VolumeImportSource, err error)
 	// VolumeImportSources returns an object that can list and get VolumeImportSources.
 	VolumeImportSources(namespace string) VolumeImportSourceNamespaceLister
 	VolumeImportSourceListerExpansion
@@ -38,17 +38,17 @@ type VolumeImportSourceLister interface {
 
 // volumeImportSourceLister implements the VolumeImportSourceLister interface.
 type volumeImportSourceLister struct {
-	listers.ResourceIndexer[*v1beta1.VolumeImportSource]
+	listers.ResourceIndexer[*corev1beta1.VolumeImportSource]
 }
 
 // NewVolumeImportSourceLister returns a new VolumeImportSourceLister.
 func NewVolumeImportSourceLister(indexer cache.Indexer) VolumeImportSourceLister {
-	return &volumeImportSourceLister{listers.New[*v1beta1.VolumeImportSource](indexer, v1beta1.Resource("volumeimportsource"))}
+	return &volumeImportSourceLister{listers.New[*corev1beta1.VolumeImportSource](indexer, corev1beta1.Resource("volumeimportsource"))}
 }
 
 // VolumeImportSources returns an object that can list and get VolumeImportSources.
 func (s *volumeImportSourceLister) VolumeImportSources(namespace string) VolumeImportSourceNamespaceLister {
-	return volumeImportSourceNamespaceLister{listers.NewNamespaced[*v1beta1.VolumeImportSource](s.ResourceIndexer, namespace)}
+	return volumeImportSourceNamespaceLister{listers.NewNamespaced[*corev1beta1.VolumeImportSource](s.ResourceIndexer, namespace)}
 }
 
 // VolumeImportSourceNamespaceLister helps list and get VolumeImportSources.
@@ -56,15 +56,15 @@ func (s *volumeImportSourceLister) VolumeImportSources(namespace string) VolumeI
 type VolumeImportSourceNamespaceLister interface {
 	// List lists all VolumeImportSources in the indexer for a given namespace.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.VolumeImportSource, err error)
+	List(selector labels.Selector) (ret []*corev1beta1.VolumeImportSource, err error)
 	// Get retrieves the VolumeImportSource from the indexer for a given namespace and name.
 	// Objects returned here must be treated as read-only.
-	Get(name string) (*v1beta1.VolumeImportSource, error)
+	Get(name string) (*corev1beta1.VolumeImportSource, error)
 	VolumeImportSourceNamespaceListerExpansion
 }
 
 // volumeImportSourceNamespaceLister implements the VolumeImportSourceNamespaceLister
 // interface.
 type volumeImportSourceNamespaceLister struct {
-	listers.ResourceIndexer[*v1beta1.VolumeImportSource]
+	listers.ResourceIndexer[*corev1beta1.VolumeImportSource]
 }

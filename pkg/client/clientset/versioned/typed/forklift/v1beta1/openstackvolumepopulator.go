@@ -19,13 +19,13 @@ limitations under the License.
 package v1beta1
 
 import (
-	"context"
+	context "context"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	gentype "k8s.io/client-go/gentype"
-	v1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/forklift/v1beta1"
+	forkliftv1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/forklift/v1beta1"
 	scheme "kubevirt.io/containerized-data-importer/pkg/client/clientset/versioned/scheme"
 )
 
@@ -37,33 +37,36 @@ type OpenstackVolumePopulatorsGetter interface {
 
 // OpenstackVolumePopulatorInterface has methods to work with OpenstackVolumePopulator resources.
 type OpenstackVolumePopulatorInterface interface {
-	Create(ctx context.Context, openstackVolumePopulator *v1beta1.OpenstackVolumePopulator, opts v1.CreateOptions) (*v1beta1.OpenstackVolumePopulator, error)
-	Update(ctx context.Context, openstackVolumePopulator *v1beta1.OpenstackVolumePopulator, opts v1.UpdateOptions) (*v1beta1.OpenstackVolumePopulator, error)
+	Create(ctx context.Context, openstackVolumePopulator *forkliftv1beta1.OpenstackVolumePopulator, opts v1.CreateOptions) (*forkliftv1beta1.OpenstackVolumePopulator, error)
+	Update(ctx context.Context, openstackVolumePopulator *forkliftv1beta1.OpenstackVolumePopulator, opts v1.UpdateOptions) (*forkliftv1beta1.OpenstackVolumePopulator, error)
 	// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
-	UpdateStatus(ctx context.Context, openstackVolumePopulator *v1beta1.OpenstackVolumePopulator, opts v1.UpdateOptions) (*v1beta1.OpenstackVolumePopulator, error)
+	UpdateStatus(ctx context.Context, openstackVolumePopulator *forkliftv1beta1.OpenstackVolumePopulator, opts v1.UpdateOptions) (*forkliftv1beta1.OpenstackVolumePopulator, error)
 	Delete(ctx context.Context, name string, opts v1.DeleteOptions) error
 	DeleteCollection(ctx context.Context, opts v1.DeleteOptions, listOpts v1.ListOptions) error
-	Get(ctx context.Context, name string, opts v1.GetOptions) (*v1beta1.OpenstackVolumePopulator, error)
-	List(ctx context.Context, opts v1.ListOptions) (*v1beta1.OpenstackVolumePopulatorList, error)
+	Get(ctx context.Context, name string, opts v1.GetOptions) (*forkliftv1beta1.OpenstackVolumePopulator, error)
+	List(ctx context.Context, opts v1.ListOptions) (*forkliftv1beta1.OpenstackVolumePopulatorList, error)
 	Watch(ctx context.Context, opts v1.ListOptions) (watch.Interface, error)
-	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *v1beta1.OpenstackVolumePopulator, err error)
+	Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts v1.PatchOptions, subresources ...string) (result *forkliftv1beta1.OpenstackVolumePopulator, err error)
 	OpenstackVolumePopulatorExpansion
 }
 
 // openstackVolumePopulators implements OpenstackVolumePopulatorInterface
 type openstackVolumePopulators struct {
-	*gentype.ClientWithList[*v1beta1.OpenstackVolumePopulator, *v1beta1.OpenstackVolumePopulatorList]
+	*gentype.ClientWithList[*forkliftv1beta1.OpenstackVolumePopulator, *forkliftv1beta1.OpenstackVolumePopulatorList]
 }
 
 // newOpenstackVolumePopulators returns a OpenstackVolumePopulators
 func newOpenstackVolumePopulators(c *ForkliftV1beta1Client, namespace string) *openstackVolumePopulators {
 	return &openstackVolumePopulators{
-		gentype.NewClientWithList[*v1beta1.OpenstackVolumePopulator, *v1beta1.OpenstackVolumePopulatorList](
+		gentype.NewClientWithList[*forkliftv1beta1.OpenstackVolumePopulator, *forkliftv1beta1.OpenstackVolumePopulatorList](
 			"openstackvolumepopulators",
 			c.RESTClient(),
 			scheme.ParameterCodec,
 			namespace,
-			func() *v1beta1.OpenstackVolumePopulator { return &v1beta1.OpenstackVolumePopulator{} },
-			func() *v1beta1.OpenstackVolumePopulatorList { return &v1beta1.OpenstackVolumePopulatorList{} }),
+			func() *forkliftv1beta1.OpenstackVolumePopulator { return &forkliftv1beta1.OpenstackVolumePopulator{} },
+			func() *forkliftv1beta1.OpenstackVolumePopulatorList {
+				return &forkliftv1beta1.OpenstackVolumePopulatorList{}
+			},
+		),
 	}
 }

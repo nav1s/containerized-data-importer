@@ -19,10 +19,10 @@ limitations under the License.
 package v1beta1
 
 import (
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/client-go/listers"
-	"k8s.io/client-go/tools/cache"
-	v1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1beta1"
+	labels "k8s.io/apimachinery/pkg/labels"
+	listers "k8s.io/client-go/listers"
+	cache "k8s.io/client-go/tools/cache"
+	corev1beta1 "kubevirt.io/containerized-data-importer-api/pkg/apis/core/v1beta1"
 )
 
 // VolumeCloneSourceLister helps list VolumeCloneSources.
@@ -30,7 +30,7 @@ import (
 type VolumeCloneSourceLister interface {
 	// List lists all VolumeCloneSources in the indexer.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.VolumeCloneSource, err error)
+	List(selector labels.Selector) (ret []*corev1beta1.VolumeCloneSource, err error)
 	// VolumeCloneSources returns an object that can list and get VolumeCloneSources.
 	VolumeCloneSources(namespace string) VolumeCloneSourceNamespaceLister
 	VolumeCloneSourceListerExpansion
@@ -38,17 +38,17 @@ type VolumeCloneSourceLister interface {
 
 // volumeCloneSourceLister implements the VolumeCloneSourceLister interface.
 type volumeCloneSourceLister struct {
-	listers.ResourceIndexer[*v1beta1.VolumeCloneSource]
+	listers.ResourceIndexer[*corev1beta1.VolumeCloneSource]
 }
 
 // NewVolumeCloneSourceLister returns a new VolumeCloneSourceLister.
 func NewVolumeCloneSourceLister(indexer cache.Indexer) VolumeCloneSourceLister {
-	return &volumeCloneSourceLister{listers.New[*v1beta1.VolumeCloneSource](indexer, v1beta1.Resource("volumeclonesource"))}
+	return &volumeCloneSourceLister{listers.New[*corev1beta1.VolumeCloneSource](indexer, corev1beta1.Resource("volumeclonesource"))}
 }
 
 // VolumeCloneSources returns an object that can list and get VolumeCloneSources.
 func (s *volumeCloneSourceLister) VolumeCloneSources(namespace string) VolumeCloneSourceNamespaceLister {
-	return volumeCloneSourceNamespaceLister{listers.NewNamespaced[*v1beta1.VolumeCloneSource](s.ResourceIndexer, namespace)}
+	return volumeCloneSourceNamespaceLister{listers.NewNamespaced[*corev1beta1.VolumeCloneSource](s.ResourceIndexer, namespace)}
 }
 
 // VolumeCloneSourceNamespaceLister helps list and get VolumeCloneSources.
@@ -56,15 +56,15 @@ func (s *volumeCloneSourceLister) VolumeCloneSources(namespace string) VolumeClo
 type VolumeCloneSourceNamespaceLister interface {
 	// List lists all VolumeCloneSources in the indexer for a given namespace.
 	// Objects returned here must be treated as read-only.
-	List(selector labels.Selector) (ret []*v1beta1.VolumeCloneSource, err error)
+	List(selector labels.Selector) (ret []*corev1beta1.VolumeCloneSource, err error)
 	// Get retrieves the VolumeCloneSource from the indexer for a given namespace and name.
 	// Objects returned here must be treated as read-only.
-	Get(name string) (*v1beta1.VolumeCloneSource, error)
+	Get(name string) (*corev1beta1.VolumeCloneSource, error)
 	VolumeCloneSourceNamespaceListerExpansion
 }
 
 // volumeCloneSourceNamespaceLister implements the VolumeCloneSourceNamespaceLister
 // interface.
 type volumeCloneSourceNamespaceLister struct {
-	listers.ResourceIndexer[*v1beta1.VolumeCloneSource]
+	listers.ResourceIndexer[*corev1beta1.VolumeCloneSource]
 }
