@@ -1052,7 +1052,7 @@ var _ = Describe("Controller", func() {
 
 				result, err := args.reconciler.Reconcile(context.TODO(), reconcileRequest(newInstance.Name))
 				Expect(err).ToNot(HaveOccurred())
-				Expect(result.Requeue).To(BeFalse())
+				Expect(result.RequeueAfter).To(BeZero())
 
 				newInstance, err = getCDI(args.client, newInstance)
 				Expect(err).ToNot(HaveOccurred())
@@ -2129,7 +2129,7 @@ func createArgs(objs ...client.Object) *args {
 func doReconcile(args *args) {
 	result, err := args.reconciler.Reconcile(context.TODO(), reconcileRequest(args.cdi.Name))
 	Expect(err).ToNot(HaveOccurred())
-	Expect(result.Requeue).To(BeFalse())
+	Expect(result.RequeueAfter).To(BeZero())
 
 	args.cdi, err = getCDI(args.client, args.cdi)
 	Expect(err).ToNot(HaveOccurred())
@@ -2138,7 +2138,7 @@ func doReconcile(args *args) {
 func doReconcileError(args *args) {
 	result, err := args.reconciler.Reconcile(context.TODO(), reconcileRequest(args.cdi.Name))
 	Expect(err).To(HaveOccurred())
-	Expect(result.Requeue).To(BeFalse())
+	Expect(result.RequeueAfter).To(BeZero())
 
 	args.cdi, err = getCDI(args.client, args.cdi)
 	Expect(err).ToNot(HaveOccurred())
@@ -2147,7 +2147,7 @@ func doReconcileError(args *args) {
 func doReconcileRequeue(args *args) {
 	result, err := args.reconciler.Reconcile(context.TODO(), reconcileRequest(args.cdi.Name))
 	Expect(err).ToNot(HaveOccurred())
-	Expect(result.Requeue || result.RequeueAfter > 0).To(BeTrue())
+	Expect(result.RequeueAfter).To(BeNumerically(">", 0))
 
 	args.cdi, err = getCDI(args.client, args.cdi)
 	Expect(err).ToNot(HaveOccurred())
@@ -2156,7 +2156,7 @@ func doReconcileRequeue(args *args) {
 func doReconcileExpectDelete(args *args) {
 	result, err := args.reconciler.Reconcile(context.TODO(), reconcileRequest(args.cdi.Name))
 	Expect(err).ToNot(HaveOccurred())
-	Expect(result.Requeue).To(BeFalse())
+	Expect(result.RequeueAfter).To(BeZero())
 
 	_, err = getCDI(args.client, args.cdi)
 	Expect(err).To(HaveOccurred())

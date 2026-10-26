@@ -77,7 +77,7 @@ var _ = Describe("Storage profile controller reconcile loop", func() {
 	It("Should not requeue if storage class can not be found", func() {
 		reconciler = createStorageProfileReconciler()
 		res, err := reconciler.Reconcile(context.TODO(), reconcile.Request{NamespacedName: types.NamespacedName{Name: storageClassName}})
-		Expect(res.Requeue).ToNot(BeTrue())
+		Expect(res.RequeueAfter).To(BeZero())
 		Expect(err).ToNot(HaveOccurred())
 		storageProfileList := &cdiv1.StorageProfileList{}
 		err = reconciler.client.List(context.TODO(), storageProfileList, &client.ListOptions{})

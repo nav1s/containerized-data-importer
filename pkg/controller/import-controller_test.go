@@ -241,7 +241,7 @@ var _ = Describe("ImportConfig Controller reconcile loop", func() {
 		reconciler := createImportReconciler(pvc, pod)
 		result, err := reconciler.Reconcile(context.TODO(), reconcile.Request{NamespacedName: types.NamespacedName{Name: "testPvc1", Namespace: "default"}})
 		Expect(err).ToNot(HaveOccurred())
-		Expect(result.Requeue).To(BeTrue())
+		Expect(result.RequeueAfter).To(BeNumerically(">", 0))
 		podList := &corev1.PodList{}
 		err = reconciler.client.List(context.TODO(), podList, &client.ListOptions{})
 		Expect(err).ToNot(HaveOccurred())

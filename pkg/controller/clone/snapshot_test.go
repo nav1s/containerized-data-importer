@@ -132,7 +132,6 @@ var _ = Describe("SnapshotPhase test", func() {
 			result, err := p.Reconcile(context.Background())
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result).ToNot(BeNil())
-			Expect(result.Requeue).To(BeFalse())
 			Expect(result.RequeueAfter).To(BeZero())
 
 			snapshot := getSnapshot(p)
@@ -162,7 +161,6 @@ var _ = Describe("SnapshotPhase test", func() {
 				result, err := p.Reconcile(context.Background())
 				Expect(err).ToNot(HaveOccurred())
 				Expect(result).ToNot(BeNil())
-				Expect(result.Requeue).To(BeFalse())
 				Expect(result.RequeueAfter).To(BeZero())
 			})
 

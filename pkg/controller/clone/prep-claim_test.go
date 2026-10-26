@@ -215,7 +215,6 @@ var _ = Describe("PrepClaimPhase test", func() {
 			result, err := p.Reconcile(context.Background())
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result).ToNot(BeNil())
-			Expect(result.Requeue).To(BeFalse())
 			Expect(result.RequeueAfter).To(BeZero())
 
 			pvc := getDesiredClaim(p)
@@ -233,7 +232,6 @@ var _ = Describe("PrepClaimPhase test", func() {
 			result, err := p.Reconcile(context.Background())
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result).ToNot(BeNil())
-			Expect(result.Requeue).To(BeFalse())
 			Expect(result.RequeueAfter).To(BeZero())
 
 			pod := getCreatedPod(p)
@@ -272,7 +270,6 @@ var _ = Describe("PrepClaimPhase test", func() {
 			result, err := p.Reconcile(context.Background())
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result).ToNot(BeNil())
-			Expect(result.Requeue).To(BeFalse())
 			Expect(result.RequeueAfter).To(BeZero())
 
 			pod := getCreatedPod(p)
@@ -305,7 +302,6 @@ var _ = Describe("PrepClaimPhase test", func() {
 				result, err := p.Reconcile(context.Background())
 				Expect(err).ToNot(HaveOccurred())
 				Expect(result).ToNot(BeNil())
-				Expect(result.Requeue).To(BeFalse())
 				Expect(result.RequeueAfter).To(BeZero())
 
 				err = p.Client.Get(context.Background(), client.ObjectKeyFromObject(pod), pod)

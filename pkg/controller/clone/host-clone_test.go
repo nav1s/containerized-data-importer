@@ -96,7 +96,6 @@ var _ = Describe("HostClonePhase test", func() {
 		result, err := p.Reconcile(context.Background())
 		Expect(err).ToNot(HaveOccurred())
 		Expect(result).ToNot(BeNil())
-		Expect(result.Requeue).To(BeFalse())
 		Expect(result.RequeueAfter).ToNot(BeZero())
 
 		pvc := getDesiredClaim(p)
@@ -120,7 +119,6 @@ var _ = Describe("HostClonePhase test", func() {
 		result, err := p.Reconcile(context.Background())
 		Expect(err).ToNot(HaveOccurred())
 		Expect(result).ToNot(BeNil())
-		Expect(result.Requeue).To(BeFalse())
 		Expect(result.RequeueAfter).ToNot(BeZero())
 
 		pvc := getDesiredClaim(p)
@@ -146,7 +144,6 @@ var _ = Describe("HostClonePhase test", func() {
 			result, err := p.Reconcile(context.Background())
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result).ToNot(BeNil())
-			Expect(result.Requeue).To(BeFalse())
 			Expect(result.RequeueAfter).ToNot(BeZero())
 		})
 
@@ -159,7 +156,6 @@ var _ = Describe("HostClonePhase test", func() {
 			result, err := p.Reconcile(context.Background())
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result).ToNot(BeNil())
-			Expect(result.Requeue).To(BeFalse())
 			Expect(result.RequeueAfter).ToNot(BeZero())
 		})
 
