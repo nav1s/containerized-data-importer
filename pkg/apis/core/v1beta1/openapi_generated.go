@@ -17173,6 +17173,26 @@ func schema_pkg_apis_core_v1beta1_CustomTLSProfile(ref common.ReferenceCallback)
 							},
 						},
 					},
+					"groups": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "set",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "groups is an optional, ordered field used to specify the supported groups (formerly known as elliptic curves) that are used during the TLS handshake.  The order of the groups represents a suggested preference, with the most preferred group first. Note that not all platform components honor the ordering: Go-based components use Go's internal preference order and treat this list as a filter of allowed groups rather than an ordered preference. Operators may remove entries their operands do not support.\n\nWhen omitted, this means no opinion and the platform is left to choose reasonable defaults which are subject to change over time and may be different per platform component depending on the underlying TLS libraries they use. If specified, the list must contain at least one and at most 7 groups, and each group must be unique.\n\nFor example, to use X25519 and secp256r1 (yaml):\n\n  groups:\n    - X25519\n    - secp256r1",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
 					"minTLSVersion": {
 						SchemaProps: spec.SchemaProps{
 							Description: "minTLSVersion is used to specify the minimal version of the TLS protocol that is negotiated during the TLS handshake. For example, to use TLS versions 1.1, 1.2 and 1.3 (yaml):\n\n  minTLSVersion: VersionTLS11\n\nNOTE: currently the highest minTLSVersion allowed is VersionTLS12",
@@ -19517,6 +19537,26 @@ func schema_pkg_apis_core_v1beta1_TLSProfileSpec(ref common.ReferenceCallback) c
 					"ciphers": {
 						SchemaProps: spec.SchemaProps{
 							Description: "ciphers is used to specify the cipher algorithms that are negotiated during the TLS handshake.  Operators may remove entries their operands do not support.  For example, to use DES-CBC3-SHA  (yaml):\n\n  ciphers:\n    - DES-CBC3-SHA",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+					"groups": {
+						VendorExtensible: spec.VendorExtensible{
+							Extensions: spec.Extensions{
+								"x-kubernetes-list-type": "set",
+							},
+						},
+						SchemaProps: spec.SchemaProps{
+							Description: "groups is an optional, ordered field used to specify the supported groups (formerly known as elliptic curves) that are used during the TLS handshake.  The order of the groups represents a suggested preference, with the most preferred group first. Note that not all platform components honor the ordering: Go-based components use Go's internal preference order and treat this list as a filter of allowed groups rather than an ordered preference. Operators may remove entries their operands do not support.\n\nWhen omitted, this means no opinion and the platform is left to choose reasonable defaults which are subject to change over time and may be different per platform component depending on the underlying TLS libraries they use. If specified, the list must contain at least one and at most 7 groups, and each group must be unique.\n\nFor example, to use X25519 and secp256r1 (yaml):\n\n  groups:\n    - X25519\n    - secp256r1",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
