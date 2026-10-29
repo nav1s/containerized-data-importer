@@ -86,8 +86,7 @@ func NewCdiConfigTLSWatcher(ctx context.Context, cdiClient cdiclient.Interface) 
 			ctw.updateConfig(obj.(*cdiv1.CDIConfig))
 		},
 		DeleteFunc: func(obj interface{}) {
-			config := obj.(*cdiv1.CDIConfig)
-			klog.Errorf("CDIConfig %s deleted", config.Name)
+			klog.Error("CDIConfig deleted")
 		},
 	})
 
